@@ -13,23 +13,48 @@ class CKANStore(RDFStore):
 
     Parameters
     ----------
-    path : string
-        URI for CKAN
+    url : string
+        URI for CKAN API
 
     """
     def __init__(self, url, **kwargs):
         RDFStore.__init__(self, url=url, **kwargs)
+
+        if self.url.endswith('api'):
+            # remove '/api'
+            self.url = self.url[:-4]
 
         # cache
         self._packages = None
         self._groups = None
         self._tags = None
 
-    def get_package_from_id(self, package_id):
+    def is_valid(self):
+        """
+        Check whether the site has valid API.
+
+        Returns
+        -------
+        is_valid : bool
+        """
+        try:
+            response = requests.get('{0}/api/action/site_read'.format(self.url))
+            results = self._validate_response(response)
+            return True
+        except (requests.exceptions.ConnectionError, ValueError):
+            return False
+
+    def get_package(self, package_id):
         params = dict(id=package_id)
         response = requests.get('{0}/api/action/package_show'.format(self.url), params=params)
         results = self._validate_response(response)
         return CKANPackage(**results)
+
+    def get_resource(self, resource_id):
+        params = dict(id=resource_id)
+        response = requests.get('{0}/api/action/resource_show'.format(self.url), params=params)
+        results = self._validate_response(response)
+        return CKANResource(**results)
 
     def get_resources_from_tag(self, tag):
         params = dict(id=tag)
@@ -54,6 +79,7 @@ class CKANStore(RDFStore):
             if isinstance(results, list):
                 self._packages = results
             elif isinstance(results, dict):
+                # internally calls ``current_package_list_with_resources``?
                 results = results['results']
                 self._packages = [CKANPackage(**r) for r in results]
             else:
@@ -115,6 +141,7 @@ class CKANPackage(RDFStore):
 
 class CKANResource(RDFStore):
     _attrs = ['size_text']
+    _supported_formats = ('CSV', 'JSON', 'XLS')
 
     def __init__(self, resources=None, **kwargs):
         RDFStore.__init__(self, **kwargs)
@@ -136,7 +163,22 @@ Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
                                          size=self.size_text)
         return rep_str
 
-    def read(self, **kwargs):
+    def read(self, raw=False, **kwargs):
+        """
+        Read data from resource
+
+        Parameters
+        ----------
+        raw : bool, default False
+            If False, return pandas.DataFrame. If True, return raw data
+
+        Returns
+        -------
+        data : pandas.DataFrame or requests.raw.data
+        """
+        if raw:
+            return self._read_raw(**kwargs)
+
         if self.resources is None:
             return self._read(**kwargs)
         else:
@@ -153,6 +195,10 @@ Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
             raise ValueError('Unable to read data because url is None')
         if self.format == 'CSV':
             return pandas.read_csv(self.url, **kwargs)
+        elif self.format == 'XLS':
+            return pandas.read_excel(self.url, **kwargs)
+        elif self.format == 'JSON':
+            return pandas.read_json(self.url, **kwargs)
         elif self.format == 'n/a':
             raise ValueError('{0} is not available on the store'.format(self.name))
         else:
