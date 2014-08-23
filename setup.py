@@ -11,4 +11,5 @@ setup(name='pyopendata',
       license = 'BSD',
       packages=find_packages(),
       install_requires = ['setuptools',
-                         'pandas>=0.14.0'])
+                         'pandas>=0.14.0',
+                         'requests'])
