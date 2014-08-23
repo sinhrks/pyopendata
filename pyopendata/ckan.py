@@ -1,8 +1,6 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
-import urllib2
-import urllib
-import json
+import requests
 
 import pandas
 from pandas.compat import u
@@ -28,25 +26,22 @@ class CKANStore(RDFStore):
         self._tags = None
 
     def get_package_from_id(self, package_id):
-        data = urllib.urlencode(dict(id=package_id))
-        request = urllib2.Request('{0}/api/action/package_show?{1}'.format(self.url, data))
-        response = urllib2.urlopen(request)
+        params = dict(id=package_id)
+        response = requests.get('{0}/api/action/package_show'.format(self.url), params=params)
         results = self._validate_response(response)
         return CKANPackage(**results)
 
     def get_resources_from_tag(self, tag):
-        data = urllib.urlencode(dict(id=tag))
-        request = urllib2.Request('{0}/api/action/tag_show?{1}'.format(self.url, data))
-        response = urllib2.urlopen(request)
+        params = dict(id=tag)
+        response = requests.get('{0}/api/action/tag_show'.format(self.url), params=params)
         results = self._validate_response(response)
         results = results['packages']
 
         return [CKANResource(**r) for r in results]
 
     def get_packages_from_group(self, group_id):
-        data = urllib.urlencode(dict(id=group_id))
-        request = urllib2.Request('{0}/api/action/group_show?{1}'.format(self.url, data))
-        response = urllib2.urlopen(request)
+        params = dict(id=group_id)
+        response = requests.get('{0}/api/action/group_show'.format(self.url), params=params)
         results = self._validate_response(response)
         results = results['packages']
         return [CKANPackage(**r) for r in results]
@@ -54,8 +49,7 @@ class CKANStore(RDFStore):
     @property
     def packages(self):
         if self._packages is None:
-            request = urllib2.Request('{0}/api/action/package_list'.format(self.url))
-            response = urllib2.urlopen(request)
+            response = requests.get('{0}/api/action/package_list'.format(self.url))
             results = self._validate_response(response)
             if isinstance(results, list):
                 self._packages = results
@@ -69,24 +63,22 @@ class CKANStore(RDFStore):
     @property
     def groups(self):
         if self._groups is None:
-            request = urllib2.Request('{0}/api/action/group_list'.format(self.url))
-            response = urllib2.urlopen(request)
+            response = requests.get('{0}/api/action/group_list'.format(self.url))
             self._groups = self._validate_response(response)
         return self._groups
 
     @property
     def tags(self):
         if self._tags is None:
-            request = urllib2.Request('{0}/api/action/tag_list'.format(self.url))
-            response = urllib2.urlopen(request)
+            response = requests.get('{0}/api/action/tag_list'.format(self.url))
             self._tags= self._validate_response(response)
         return self._tags
 
     def _validate_response(self, response):
-        if response.code != 200:
-            raise ValueError(response.code)
+        if response.status_code != 200:
+            raise ValueError(response.status_code)
 
-        response_dict = json.loads(response.read())
+        response_dict = response.json()
         if response_dict['success'] is not True:
             raise valueError(responce_dict['message'])
         return response_dict['result']
