@@ -15,8 +15,11 @@ class RDFStore(pandas.core.base.StringMixin):
         self.size = size
 
         for attr in self._attrs:
-            value = kwargs.get(attr, None)
+            value = kwargs.pop(attr, None)
             setattr(self, attr, value)
+
+        self.kwargs = kwargs
+
 
     def _normalize_url(self, url):
         if url is None:

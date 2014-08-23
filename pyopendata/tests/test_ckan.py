@@ -60,14 +60,9 @@ class TestDATAGOV(tm.TestCase):
         result_names = [r.name for r in result]
         self.assertTrue('consumer-complaint-database' in result_names)
 
-        package = self.store.get_package_from_id('consumer-complaint-database')
-        for r in package.resources:
-            # ToDo: Find more small data
-            if r.id == '8842d7a8-d34e-4ad6-b324-8f8cb3c5beef':
-                df = r.read()
-                self.assertEqual(df.shape, (278771, 14))
-                return
-        raise ValueError('Unable to find test data for validation')
+        package = self.store.get_package_from_id('average-act-scores-per-year-oklahoma-vs-united-states')
+        df = package.resources[0].read()
+        self.assertEqual(df.shape, (10, 3))
 
     def test_groups(self):
         result = self.store.groups
@@ -87,13 +82,15 @@ class TestDATAGOV(tm.TestCase):
 
     def test_tags(self):
         result = self.store.tags
-        self.assertTrue('bank-service' in result)
+        self.assertTrue('education' in result)
 
-        resources = self.store.get_resources_from_tag('bank-service')
+        resources = self.store.get_resources_from_tag('education')
         self.assertTrue(len(resources) > 0)
         for r in resources:
-            if r.id == '8842d7a8-d34e-4ad6-b324-8f8cb3c5beef':
-                # tested in self.test_packages()
+            # average-act-scores-per-year-oklahoma-vs-united-states
+            if r.id == '434dad57-322e-430b-9b95-2cb703105cd4':
+                df = r.resources[0].read()
+                self.assertEqual(df.shape, (10, 3))
                 return
         raise ValueError('Unable to find test data for validation')
 

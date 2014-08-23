@@ -37,16 +37,15 @@ class CKANStore(RDFStore):
     def get_resources_from_tag(self, tag):
         data = urllib.urlencode(dict(id=tag))
         request = urllib2.Request('{0}/api/action/tag_show?{1}'.format(self.url, data))
-        print(request)
         response = urllib2.urlopen(request)
         results = self._validate_response(response)
         results = results['packages']
+
         return [CKANResource(**r) for r in results]
 
     def get_packages_from_group(self, group_id):
         data = urllib.urlencode(dict(id=group_id))
         request = urllib2.Request('{0}/api/action/group_show?{1}'.format(self.url, data))
-        print(request.__dict__)
         response = urllib2.urlopen(request)
         results = self._validate_response(response)
         results = results['packages']
@@ -125,6 +124,16 @@ class CKANPackage(RDFStore):
 class CKANResource(RDFStore):
     _attrs = ['size_text']
 
+    def __init__(self, resources=None, **kwargs):
+        RDFStore.__init__(self, **kwargs)
+
+        if resources is None:
+            self.resources = None
+        elif isinstance(resources, list):
+            self.resources = [CKANResource(**r) for r in resources]
+        else:
+            raise ValueError(type(resources), resources)
+
     def __unicode__(self):
         rep_str = u("""Resource ID: {id}
 Resource Name: {name}
@@ -136,11 +145,23 @@ Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
         return rep_str
 
     def read(self, **kwargs):
+        if self.resources is None:
+            return self._read(**kwargs)
+        else:
+            source_len = len(self.resources)
+            if source_len == 0:
+                return pandas.DataFrame()
+            elif source_len == 1:
+                return self.resources[0].read(**kwargs)
+            else:
+                raise ValueError('Package has {0} resources. Use CKANResource.read()'.format(source_len))
+
+    def _read(self, **kwargs):
         if self.url is None:
             raise ValueError('Unable to read data because url is None')
         if self.format == 'CSV':
             return pandas.read_csv(self.url, **kwargs)
         elif self.format == 'n/a':
-            raise ValueError('{0}, is not available on the store')
+            raise ValueError('{0} is not available on the store'.format(self.name))
         else:
             raise ValueError('Unsupported read format: {0}'.format(self.format))
