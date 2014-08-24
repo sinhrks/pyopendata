@@ -4,7 +4,7 @@ from pyopendata import CKANStore, CKANPackage, CKANResource
 
 import pandas.util.testing as tm
 
-"""
+
 class TestCKANTestSite(tm.TestCase):
     _url = 'http://demo.ckan.org/'
     _resource = '04127ad5-77e5-4a08-9f40-12d3c383e460'
@@ -28,7 +28,22 @@ class TestCKANTestSite(tm.TestCase):
         self.store = CKANStore(self._url)
 
     def test_isvalid(self):
-        self.assertFalse(self.store.is_valid())
+        self.assertTrue(self.store.is_valid())
+
+    def test_search(self):
+        result = self.store.search_package('gold')
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
+
+        result = self.store.search_resource('name:gold')
+        result_names = [r.name for r in result]
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANResource))
+
+        result = self.store.search('name:gold')
+        result_names = [r.name for r in result]
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANResource))
 
     def test_packages(self):
         result = self.store.packages
@@ -81,10 +96,11 @@ class TestInvalidTestSite(tm.TestCase):
 
     def test_isvalid(self):
         self.assertFalse(self.store.is_valid())
-"""
+
 
 class TestDATAGOV(tm.TestCase):
     _url = 'http://catalog.data.gov/'
+    _package = 'average-act-scores-per-year-oklahoma-vs-united-states'
     _resource = '434dad57-322e-430b-9b95-2cb703105cd4'
 
     def setUp(self):
@@ -93,22 +109,41 @@ class TestDATAGOV(tm.TestCase):
     def test_isvalid(self):
         self.assertTrue(self.store.is_valid())
 
+    def test_search(self):
+        result = self.store.search_package('Oklahoma')
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
+
+        result = self.store.search('Oklahoma')
+        result_names = [r.name for r in result]
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
+
     def test_packages(self):
         result = self.store.packages
         result_names = [r.name for r in result]
         self.assertTrue('consumer-complaint-database' in result_names)
 
-        package = self.store.get_package('average-act-scores-per-year-oklahoma-vs-united-states')
+        package = self.store.get_package(self._package)
         df = package.resources[0].read()
         self.assertEqual(df.shape, (10, 3))
+
+        result = self.store.search_package('Oklahoma')
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
 
     def test_resource(self):
         # Can't work for data.gov
 
-        # CSV of 'average-act-scores-per-year-oklahoma-vs-united-states'
-        # resource = self.store.get_resource('61e12273-4d1b-4176-8469-ac4eb6394502')
+        # CSV of self._package
+        # resource = self.store.get_resource(self._resource)
         # df = resources.read()
         # self.assertEqual(df.shape, (10, 3))
+
+        # result = self.store.search_resource('Oklahoma')
+        # result_names = [r.name for r in result]
+        # self.assertTrue(len(result) > 0)
+        # self.assertTrue(isinstance(result[0], CKANResource))
         pass
 
     def test_groups(self):
@@ -121,11 +156,11 @@ class TestDATAGOV(tm.TestCase):
         # self.assertTrue(len(packages) > 0)
         # for p in packages:
         #     for r in p.resources:
-        #         if r.id == '04127ad5-77e5-4a08-9f40-12d3c383e460':
+        #         if r.id == self._resource:
         #             df = r.read()
         #             self.assertEqual(df.shape, (564, 6))
         #             return
-        # raise ValueError('Unable to find test data "04127ad5-77e5-4a08-9f40-12d3c383e460"')
+        # raise ValueError('Unable to find test data for validation')
 
     def test_tags(self):
         result = self.store.tags
@@ -134,7 +169,6 @@ class TestDATAGOV(tm.TestCase):
         resources = self.store.get_resources_from_tag('education')
         self.assertTrue(len(resources) > 0)
         for r in resources:
-            # average-act-scores-per-year-oklahoma-vs-united-states
             if r.id == self._resource:
                 df = r.resources[0].read()
                 self.assertEqual(df.shape, (10, 3))
@@ -142,7 +176,7 @@ class TestDATAGOV(tm.TestCase):
         raise ValueError('Unable to find test data for validation')
 
     def test_formats(self):
-        package = self.store.get_package('average-act-scores-per-year-oklahoma-vs-united-states')
+        package = self.store.get_package(self._package)
         # JSON, CSV
         for r in package.resources:
             if r.format in CKANResource._supported_formats:
@@ -165,7 +199,7 @@ class TestDATAGOV(tm.TestCase):
                 # self.assertEqual(df.shape, (10, 3))
 
     def test_raw_data(self):
-        package = self.store.get_package('average-act-scores-per-year-oklahoma-vs-united-states')
+        package = self.store.get_package(self._package)
         for r in package.resources:
             data = r.read(raw=True)
             self.assertTrue(len(data), 0)
