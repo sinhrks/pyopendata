@@ -22,6 +22,12 @@ class RDFStore(pandas.core.base.StringMixin):
 
         self.kwargs = kwargs
 
+    def get(self, name):
+        raise NotImplementedError
+
+    def search(self, serch_string):
+        raise NotImplementedError
+
     def _normalize_url(self, url):
         if url is None:
             return url

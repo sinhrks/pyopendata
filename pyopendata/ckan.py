@@ -44,6 +44,17 @@ class CKANStore(RDFStore):
         except (requests.exceptions.ConnectionError, ValueError):
             return False
 
+    def get(self, object_id):
+        # get smaller object to larger object (resource -> package)
+        try:
+            return self.get_resource(object_id)
+        except (requests.exceptions.ConnectionError, ValueError):
+            pass
+        try:
+            return self.get_package(object_id)
+        except (requests.exceptions.ConnectionError, ValueError):
+            raise
+
     def get_package(self, package_id):
         params = dict(id=package_id)
         response = requests.get('{0}/api/action/package_show'.format(self.url), params=params)
@@ -61,7 +72,6 @@ class CKANStore(RDFStore):
         response = requests.get('{0}/api/action/tag_show'.format(self.url), params=params)
         results = self._validate_response(response)
         results = results['packages']
-
         return [CKANResource(**r) for r in results]
 
     def get_packages_from_group(self, group_id):
@@ -70,6 +80,36 @@ class CKANStore(RDFStore):
         results = self._validate_response(response)
         results = results['packages']
         return [CKANPackage(**r) for r in results]
+
+    def search(self, search_string):
+        # get smaller object to larger object (resource -> package)
+        try:
+            return self.search_resource(search_string)
+        except (requests.exceptions.ConnectionError, ValueError):
+            pass
+        try:
+            return self.search_package(search_string)
+        except (requests.exceptions.ConnectionError, ValueError):
+            raise
+
+    def search_package(self, search_string):
+        params = dict(q=search_string)
+        response = requests.get('{0}/api/action/package_search'.format(self.url), params=params)
+        results = self._validate_response(response)
+        results = results['results']
+        return [CKANPackage(**r) for r in results]
+
+    def search_resource(self, search_string):
+        # different params from search_packages
+        # params = dict(query=search_string)
+        # response = requests.get('{0}/api/action/resource_search'.format(self.url), params=params)
+
+        # avoid escape search string (:)
+        request_url = '{0}/api/action/resource_search?query={1}'
+        response = requests.get(request_url.format(self.url, search_string))
+        results = self._validate_response(response)
+        results = results['results']
+        return [CKANResource(**r) for r in results]
 
     @property
     def packages(self):
