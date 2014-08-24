@@ -1,7 +1,5 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
-import requests
-
 import pandas
 from pandas.compat import u
 
@@ -9,12 +7,12 @@ from pyopendata.base import RDFStore
 
 class CKANStore(RDFStore):
     """
-    Base class to read RDF
+    Storage class to read data via CKAN API
 
     Parameters
     ----------
     url : string
-        URI for CKAN API
+        URL for CKAN API
 
     """
     def __init__(self, url, **kwargs):
@@ -41,45 +39,80 @@ class CKANStore(RDFStore):
         is_valid : bool
         """
         try:
-            response = requests.get('{0}/api/action/site_read'.format(self.url))
+            response = self._requests_get('/api/action/site_read')
             results = self._validate_response(response)
             return True
-        except (requests.exceptions.ConnectionError, ValueError):
+        except self._connection_errors:
             return False
 
     def get(self, object_id):
-        # get smaller object to larger object (resource -> package)
+        """
+        Get instance related to object_id. First try to get_resource, then get_package.
+
+        Parameters
+        ----------
+        object_id : str
+            id to specify resource or package
+
+        Returns
+        -------
+        result : CKANResouce or CKANPackage
+        """
         try:
             return self.get_resource(object_id)
-        except (requests.exceptions.ConnectionError, ValueError):
+        except self._connection_errors:
             pass
         try:
             return self.get_package(object_id)
-        except (requests.exceptions.ConnectionError, ValueError):
+        except self._connection_errors:
             raise
 
     def get_package(self, package_id):
+        """
+        Get package related to package_id.
+
+        Parameters
+        ----------
+        package_id : str
+            id to specify package
+
+        Returns
+        -------
+        result : CKANPackage
+        """
         params = dict(id=package_id)
-        response = requests.get('{0}/api/action/package_show'.format(self.url), params=params)
+        response = self._requests_get('/api/action/package_show', params=params)
         results = self._validate_response(response)
         return CKANPackage(**results)
 
     def get_resource(self, resource_id):
+        """
+        Get package related to resource_id.
+
+        Parameters
+        ----------
+        resource_id : str
+            id to specify resource
+
+        Returns
+        -------
+        result : CKANResource
+        """
         params = dict(id=resource_id)
-        response = requests.get('{0}/api/action/resource_show'.format(self.url), params=params)
+        response = self._requests_get('/api/action/resource_show', params=params)
         results = self._validate_response(response)
         return CKANResource(**results)
 
     def get_resources_from_tag(self, tag):
         params = dict(id=tag)
-        response = requests.get('{0}/api/action/tag_show'.format(self.url), params=params)
+        response = self._requests_get('/api/action/tag_show', params=params)
         results = self._validate_response(response)
         results = results['packages']
         return [CKANResource(**r) for r in results]
 
     def get_packages_from_group(self, group_id):
         params = dict(id=group_id)
-        response = requests.get('{0}/api/action/group_show'.format(self.url), params=params)
+        response = self._requests_get('/api/action/group_show', params=params)
         results = self._validate_response(response)
         results = results['packages']
         return [CKANPackage(**r) for r in results]
@@ -88,16 +121,16 @@ class CKANStore(RDFStore):
         # get smaller object to larger object (resource -> package)
         try:
             return self.search_resource(search_string)
-        except (requests.exceptions.ConnectionError, ValueError):
+        except self._connection_errors:
             pass
         try:
             return self.search_package(search_string)
-        except (requests.exceptions.ConnectionError, ValueError):
+        except self._connection_errors:
             raise
 
     def search_package(self, search_string):
         params = dict(q=search_string)
-        response = requests.get('{0}/api/action/package_search'.format(self.url), params=params)
+        response = self._requests_get('/api/action/package_search', params=params)
         results = self._validate_response(response)
         results = results['results']
         return [CKANPackage(**r) for r in results]
@@ -108,16 +141,21 @@ class CKANStore(RDFStore):
         # response = requests.get('{0}/api/action/resource_search'.format(self.url), params=params)
 
         # avoid escape search string (:)
-        request_url = '{0}/api/action/resource_search?query={1}'
-        response = requests.get(request_url.format(self.url, search_string))
+
+        request_url = '/api/action/resource_search?query={0}'.format(search_string)
+        response = self._requests_get(request_url)
         results = self._validate_response(response)
         results = results['results']
         return [CKANResource(**r) for r in results]
 
     @property
+    def datasets(self):
+        return self.packages
+
+    @property
     def packages(self):
         if self._packages is None:
-            response = requests.get('{0}/api/action/package_list'.format(self.url))
+            response = self._requests_get('/api/action/package_list')
             results = self._validate_response(response)
             if isinstance(results, list):
                 self._packages = results
@@ -132,14 +170,14 @@ class CKANStore(RDFStore):
     @property
     def groups(self):
         if self._groups is None:
-            response = requests.get('{0}/api/action/group_list'.format(self.url))
+            response = self._requests_get('/api/action/group_list')
             self._groups = self._validate_response(response)
         return self._groups
 
     @property
     def tags(self):
         if self._tags is None:
-            response = requests.get('{0}/api/action/tag_list'.format(self.url))
+            response = self._requests_get('/api/action/tag_list')
             self._tags= self._validate_response(response)
         return self._tags
 
@@ -172,14 +210,32 @@ class CKANPackage(RDFStore):
         else:
             return '{0} ({1} resources)'.format(self.name, source_len)
 
-    def read(self, **kwargs):
+    def read(self, raw=False, **kwargs):
+        """
+        Read data from its resource if the number of resource is 1.
+        Otherwise, raise ValueError.
+
+        Parameters
+        ----------
+        raw : bool, default False
+            If False, return pandas.DataFrame. If True, return raw data
+        kwargs:
+            Keywords passed to pandas.read_xxx function
+
+        Returns
+        -------
+        data : pandas.DataFrame or requests.raw.data
+        """
         source_len = len(self.resources)
         if source_len == 0:
-            return pandas.DataFrame()
+            if raw:
+                return None
+            else:
+                return pandas.DataFrame()
         elif source_len == 1:
-            return self.resources[0].read(**kwargs)
+            return self.resources[0].read(raw=raw, **kwargs)
         else:
-            raise ValueError('Package has {0} resources. Use CKANResource.read()'.format(source_len))
+            raise ValueError('Package has {0} resources. Specify target CKANResource to read'.format(source_len))
 
 
 class CKANResource(RDFStore):
@@ -214,10 +270,17 @@ Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
         ----------
         raw : bool, default False
             If False, return pandas.DataFrame. If True, return raw data
+        kwargs:
+            Keywords passed to pandas.read_xxx function
 
         Returns
         -------
         data : pandas.DataFrame or requests.raw.data
+
+        Notes
+        -----
+        - When the resource format is other than CSV, parsing pandas.DataFrame may fail.
+          Use ``raw=True`` to get raw data in such cases.
         """
         if raw:
             return self._read_raw(**kwargs)
