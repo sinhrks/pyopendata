@@ -24,12 +24,6 @@ class TestCKANTestSite(tm.TestCase):
             store = CKANStore(url)
             self.assertTrue(store.is_valid())
 
-    def setUp(self):
-        self.store = CKANStore(self._url)
-
-    def test_isvalid(self):
-        self.assertTrue(self.store.is_valid())
-
     def test_search(self):
         result = self.store.search_package('gold')
         self.assertTrue(len(result) > 0)
@@ -212,7 +206,6 @@ class TestDATAGOVUK(tm.TestCase):
     def setUp(self):
         self.store = CKANStore(self._url)
 """
-# cstore = pyod.base.CKANStore('http://catalog.data.gov/')
 
 
 if __name__ == '__main__':

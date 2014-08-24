@@ -2,3 +2,4 @@
 import pyopendata.base
 import pyopendata.ckan
 from pyopendata.ckan import CKANStore, CKANPackage, CKANResource
+from pyopendata.oecd import OECDStore, OECDResource
