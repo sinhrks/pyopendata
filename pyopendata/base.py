@@ -1,5 +1,7 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
+import requests
+
 import pandas
 
 
@@ -20,7 +22,6 @@ class RDFStore(pandas.core.base.StringMixin):
 
         self.kwargs = kwargs
 
-
     def _normalize_url(self, url):
         if url is None:
             return url
@@ -29,4 +30,10 @@ class RDFStore(pandas.core.base.StringMixin):
             return url[:-1]
         else:
             return url
+
+    def _read_raw(self, **kwargs):
+        if self.url is None:
+            raise ValueError('Unable to read raw data because URL is None')
+        response = requests.get(self.url)
+        return response.content
 
