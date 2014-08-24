@@ -10,7 +10,7 @@ outputs ``pandas.DataFrame`` format.
 ## Installation
 
 ```sh
-pip install pandas
+pip install pyopendata
 ```
 
 ## Usage
