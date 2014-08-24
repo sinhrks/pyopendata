@@ -10,6 +10,10 @@ class RDFStore(pandas.core.base.StringMixin):
 
     def __init__(self, format=None, id=None, name=None, url=None,
                  size=None, **kwargs):
+
+        if isinstance(format, pandas.compat.string_types):
+            format = format.strip().upper()
+
         self.format = format
         self.id = id
         self.name = name

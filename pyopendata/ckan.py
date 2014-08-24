@@ -29,6 +29,9 @@ class CKANStore(RDFStore):
         self._groups = None
         self._tags = None
 
+    def __unicode__(self):
+        return '{0} ({1})'.format(self.__class__.__name__, self.url)
+
     def is_valid(self):
         """
         Check whether the site has valid API.
@@ -233,13 +236,13 @@ Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
     def _read(self, **kwargs):
         if self.url is None:
             raise ValueError('Unable to read data because url is None')
-        if self.format == 'CSV':
+        if self.format in ('CSV', 'CSV/TXT'):
             return pandas.read_csv(self.url, **kwargs)
         elif self.format == 'XLS':
             return pandas.read_excel(self.url, **kwargs)
         elif self.format == 'JSON':
             return pandas.read_json(self.url, **kwargs)
-        elif self.format == 'n/a':
+        elif self.format == 'N/A':
             raise ValueError('{0} is not available on the store'.format(self.name))
         else:
             raise ValueError('Unsupported read format: {0}'.format(self.format))
