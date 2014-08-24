@@ -27,9 +27,6 @@ class CKANStore(RDFStore):
         self._groups = None
         self._tags = None
 
-    def __unicode__(self):
-        return '{0} ({1})'.format(self.__class__.__name__, self.url)
-
     def is_valid(self):
         """
         Check whether the site has valid API.

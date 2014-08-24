@@ -28,6 +28,9 @@ class RDFStore(pandas.core.base.StringMixin):
 
         self.kwargs = kwargs
 
+    def __unicode__(self):
+        return '{0} ({1})'.format(self.__class__.__name__, self.url)
+
     def get(self, name):
         raise NotImplementedError
 
