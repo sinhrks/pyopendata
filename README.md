@@ -15,9 +15,6 @@ pip install pyopendata
 
 ## Usage
 
-
-.. code-block:: python
-
     >>> import pyopendata as pyod
 
     # You can create datastore for access by passing URL.
