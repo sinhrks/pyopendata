@@ -1,4 +1,7 @@
 # pylint: disable-msg=E1101,W0613,W0603
+# coding: UTF-8
+
+from __future__ import unicode_literals
 
 from pyopendata import CKANStore, CKANPackage, CKANResource
 
@@ -41,7 +44,8 @@ class TestCKANTestSite(tm.TestCase):
 
     def test_packages(self):
         result = self.store.packages
-        self.assertTrue('adur_district_spending' in result)
+        result_names = [r.name for r in result]
+        self.assertTrue('adur_district_spending' in result_names)
 
         package = self.store.get_package('adur_district_spending')
         for r in package.resources:
@@ -198,6 +202,87 @@ class TestDATAGOV(tm.TestCase):
             data = r.read(raw=True)
             self.assertTrue(len(data), 0)
 
+
+class TestDATAGOJP(tm.TestCase):
+    _url = 'http://www.data.go.jp/data'
+    _package = 'meti_08_ds_140304_00015335'
+    _resource = 'e93689c6-4c08-4fca-af31-45c61113c395'
+    _group = 'mof_07_gr_131126_00001888'
+
+    def setUp(self):
+        self.store = CKANStore(self._url)
+
+    def test_isvalid(self):
+        self.assertTrue(self.store.is_valid())
+
+    def test_search(self):
+        result = self.store.search_package('経済')
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
+
+        result = self.store.search('経済')
+        result_names = [r.name for r in result]
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
+
+    def test_packages(self):
+        result = self.store.packages
+        # ToDo: packagesが文字列リストを返すとき、CKANPackageの属性の初期化
+        self.assertTrue(len(result) > 0)
+        """
+        result_names = [r.name for r in result]
+        self.assertTrue('consumer-complaint-database' in result_names)
+
+        package = self.store.get_package(self._package)
+        df = package.resources[0].read()
+        self.assertEqual(df.shape, (10, 3))
+
+        result = self.store.search_package('Oklahoma')
+        self.assertTrue(len(result) > 0)
+        self.assertTrue(isinstance(result[0], CKANPackage))
+        """
+
+    def test_resource(self):
+        resource = self.store.get_resource(self._resource)
+        self.assertTrue(isinstance(resource, CKANResource))
+
+    def test_groups(self):
+        result = self.store.groups
+        self.assertTrue(self._group in result)
+
+        packages = self.store.get_packages_from_group(self._group)
+        self.assertTrue(len(packages) > 0)
+
+    def test_tags(self):
+        result = self.store.tags
+        self.assertTrue('population' in result)
+
+        resources = self.store.get_resources_from_tag('population')
+        self.assertTrue(len(resources) > 0)
+
+    def test_formats(self):
+        package = self.store.get_package(self._package)
+
+        for r in package.resources:
+            # row names differs depending on yearly / quarterly formats
+            if r.format in CKANResource._supported_formats:
+                df = r.read()
+                if r.id in ('e93689c6-4c08-4fca-af31-45c61113c395',
+                            '0f7bdfb1-161e-439f-894e-64379afbb5f4',
+                            '13a96b83-1a4a-4178-80a1-a4a3f183ba45',
+                            'b4fa36d2-538a-42df-89e3-ef55cb48c92f'):
+                    self.assertEqual(df.shape, (302, 141))
+                elif r.id in ('01a34ba2-26f1-4065-8229-be2bd4419c7c',
+                              '8eb7ac30-18fa-41f9-826b-e2bbb8316f0a'):
+                    self.assertEqual(df.shape, (302, 73))
+                elif r.id in ('f6683af1-d8be-4967-9d9e-e7acab49ac99',
+                              '0fd053be-57c1-4631-952a-9b5666b2394d'):
+                    self.assertEqual(df.shape, (302, 49))
+                else:
+                    raise ValueError(r.id, df.shape)
+            else:
+                data = r.read(raw=True)
+                self.assertTrue(len(data) > 0)
 
 """
 class TestDATAGOVUK(tm.TestCase):

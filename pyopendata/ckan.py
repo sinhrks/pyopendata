@@ -80,7 +80,7 @@ class CKANStore(RDFStore):
         params = dict(id=package_id)
         response = self._requests_get('/api/action/package_show', params=params)
         results = self._validate_response(response)
-        return CKANPackage(**results)
+        return CKANPackage(_store=self, **results)
 
     def get_resource(self, resource_id):
         """
@@ -98,21 +98,21 @@ class CKANStore(RDFStore):
         params = dict(id=resource_id)
         response = self._requests_get('/api/action/resource_show', params=params)
         results = self._validate_response(response)
-        return CKANResource(**results)
+        return CKANResource(_store=self, **results)
 
     def get_resources_from_tag(self, tag):
         params = dict(id=tag)
         response = self._requests_get('/api/action/tag_show', params=params)
         results = self._validate_response(response)
         results = results['packages']
-        return [CKANResource(**r) for r in results]
+        return [CKANResource(_store=self, **r) for r in results]
 
     def get_packages_from_group(self, group_id):
         params = dict(id=group_id)
         response = self._requests_get('/api/action/group_show', params=params)
         results = self._validate_response(response)
         results = results['packages']
-        return [CKANPackage(**r) for r in results]
+        return [CKANPackage(_store=self, **r) for r in results]
 
     def search(self, search_string):
         # get smaller object to larger object (resource -> package)
@@ -130,7 +130,7 @@ class CKANStore(RDFStore):
         response = self._requests_get('/api/action/package_search', params=params)
         results = self._validate_response(response)
         results = results['results']
-        return [CKANPackage(**r) for r in results]
+        return [CKANPackage(_store=self, **r) for r in results]
 
     def search_resource(self, search_string):
         # different params from search_packages
@@ -143,7 +143,7 @@ class CKANStore(RDFStore):
         response = self._requests_get(request_url)
         results = self._validate_response(response)
         results = results['results']
-        return [CKANResource(**r) for r in results]
+        return [CKANResource(_store=self, **r) for r in results]
 
     @property
     def datasets(self):
@@ -155,11 +155,12 @@ class CKANStore(RDFStore):
             response = self._requests_get('/api/action/package_list')
             results = self._validate_response(response)
             if isinstance(results, list):
-                self._packages = results
+                self._packages = [CKANPackage(_store=self, name=r) for r in results]
+                # self._packages = results
             elif isinstance(results, dict):
                 # internally calls ``current_package_list_with_resources``?
                 results = results['results']
-                self._packages = [CKANPackage(**r) for r in results]
+                self._packages = [CKANPackage(_store=self, **r) for r in results]
             else:
                 raise ValueError(type(results), results)
         return self._packages
@@ -190,13 +191,22 @@ class CKANStore(RDFStore):
 
 class CKANPackage(RDFStore):
 
-    def __init__(self, resources=None, **kwargs):
+    def __init__(self, _store=None, resources=None, name=None, **kwargs):
         RDFStore.__init__(self, **kwargs)
 
-        if isinstance(resources, list):
-            self.resources = [CKANResource(**r) for r in resources]
+        if _store is None:
+            raise ValueError('_store must be passed')
         else:
-            raise ValueError(type(resources), resources)
+            self.store = _store
+        if name is None:
+            raise ValueError("Package doesn't have 'name' attribute")
+        else:
+            self.name = name
+
+        if isinstance(resources, list):
+            self._resources = [CKANResource(_store=self.store, **r) for r in resources]
+        else:
+            self._resources = None
 
     def __unicode__(self):
         source_len = len(self.resources)
@@ -206,6 +216,13 @@ class CKANPackage(RDFStore):
             return '{0} (1 resource)'.format(self.name)
         else:
             return '{0} ({1} resources)'.format(self.name, source_len)
+
+    @property
+    def resources(self):
+        # if resources is blank, retrieve from the store
+        if self._resources is None:
+            self._resources = self.store.get_package(self.name).resources
+        return self._resources
 
     def read(self, raw=False, **kwargs):
         """
@@ -239,13 +256,18 @@ class CKANResource(RDFStore):
     _attrs = ['size_text']
     _supported_formats = ('CSV', 'JSON', 'XLS')
 
-    def __init__(self, resources=None, **kwargs):
+    def __init__(self, _store=None, resources=None, **kwargs):
         RDFStore.__init__(self, **kwargs)
+
+        if _store is None:
+            raise ValueError('_store must be passed')
+        else:
+            self.store = _store
 
         if resources is None:
             self.resources = None
         elif isinstance(resources, list):
-            self.resources = [CKANResource(**r) for r in resources]
+            self.resources = [CKANResource(_store=self.store, **r) for r in resources]
         else:
             raise ValueError(type(resources), resources)
 
