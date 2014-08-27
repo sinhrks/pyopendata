@@ -4,7 +4,7 @@ import pandas
 import numpy as np
 from pandas.compat import u, range, iterkeys, iteritems
 
-from pyopendata.base import RDFStore
+from pyopendata.base import RDFStore, DataSource
 
 class OECDStore(RDFStore):
 
@@ -74,14 +74,11 @@ class OECDStore(RDFStore):
         return '+'.join(list(iterkeys(self._countries)))
 
     def get(self, data_id):
-        response = self._requests_get('/{0}/{1}/OECD?'.format(data_id, self._target_countries))
-        return OECDResource(response)
+        url = self.url + '/{0}/{1}/OECD?'.format(data_id, self._target_countries)
+        return OECDResource(id=data_id, url=url)
 
 
-class OECDResource(RDFStore):
-
-    def __init__(self, response):
-        self.response = response
+class OECDResource(DataSource):
 
     def _get_values_from_dict(self, d, required_num):
         """
@@ -96,12 +93,8 @@ class OECDResource(RDFStore):
             values.append(value)
         return values
 
-    def read(self, raw=False, **kwargs):
-        if raw:
-            return self._read_raw(**kwargs)
-
-        data = self.response.json()
-
+    def _read(self, **kwargs):
+        data = self._requests_get().json()
         # create index and column
         structure = data['structure']
         index = structure['dimensions']['observation'][0]['values']
@@ -125,5 +118,3 @@ class OECDResource(RDFStore):
             df_data[df_data_key] = values
         return pandas.DataFrame(df_data, columns=columns, index=index)
 
-    def _read_raw(self, **kwargs):
-        return self.response.content
