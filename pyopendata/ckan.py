@@ -1,9 +1,10 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
-import pandas
-from pandas.compat import u
+from __future__ import unicode_literals
 
-from pyopendata.base import RDFStore
+import pandas
+
+from pyopendata.base import RDFStore, DataSource
 
 class CKANStore(RDFStore):
     """
@@ -272,10 +273,10 @@ class CKANResource(RDFStore):
             raise ValueError(type(resources), resources)
 
     def __unicode__(self):
-        rep_str = u("""Resource ID: {id}
+        rep_str = """Resource ID: {id}
 Resource Name: {name}
 Resource URL: {url}
-Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
+Format: {format}, Size: {size}""".format(id=self.id, name=self.name,
                                          url=self.url,
                                          format=self.format,
                                          size=self.size_text)
@@ -301,17 +302,14 @@ Format: {format}, Size: {size}""").format(id=self.id, name=self.name,
         - When the resource format is other than CSV, parsing pandas.DataFrame may fail.
           Use ``raw=True`` to get raw data in such cases.
         """
-        if raw:
-            return self._read_raw(**kwargs)
-
         if self.resources is None:
-            return self._read(**kwargs)
+            return DataSource.read(self, raw=raw, **kwargs)
         else:
             source_len = len(self.resources)
             if source_len == 0:
                 return pandas.DataFrame()
             elif source_len == 1:
-                return self.resources[0].read(**kwargs)
+                return self.resources[0].read(raw=raw, **kwargs)
             else:
                 raise ValueError('Package has {0} resources. Use CKANResource.read()'.format(source_len))
 
