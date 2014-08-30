@@ -42,6 +42,8 @@ class CKANStore(RDFStore):
             return True
         except self._connection_errors:
             return False
+        except Exception:
+            return False
 
     def get(self, object_id):
         """

@@ -1,5 +1,7 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
+from __future__ import unicode_literals
+
 import pandas
 import numpy as np
 from pandas.compat import u, range, iterkeys, iteritems

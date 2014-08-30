@@ -1,0 +1,31 @@
+{
+	"order" : {
+		"label"  : "Demo of value ordering: what does not change, first",
+		"dimension" : {
+			"id" : ["A","B","C"],
+			"size" : [3,2,4],
+			"A" : {
+				"label" : "A: 3-categories dimension",
+				"category" : {
+					"index" : ["1", "2", "3"]
+				}
+			},
+			"B" : {
+				"label" : "B: 2-categories dimension",
+				"category" : {
+					"index" : ["1", "2"]
+				}
+			} ,
+			"C" : {
+				"label" : "C: 4-categories dimension",
+				"category" : {
+					"index" : ["1", "2", "3", "4"]
+				}
+			}
+		},
+		"value" : { "0": "A1B1C1", "4": "A1B2C1", "6": "A1B2C3",
+					"8": "A2B1C1", "12": "A2B2C1", "15": "A2B2C4",
+					"16": "A3B1C1", "20": "A3B2C1", "21": "A3B2C2"
+		}
+	}
+}

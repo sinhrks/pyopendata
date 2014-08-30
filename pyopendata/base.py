@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 import requests
-
 import pandas
+
 
 class DataSource(pandas.core.base.StringMixin):
     """
@@ -98,10 +98,3 @@ class RDFStore(DataSource):
     @property
     def datasets(self):
         raise NotImplementedError
-
-
-
-
-
-
-

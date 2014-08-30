@@ -2,7 +2,8 @@
 
 from pyopendata import OECDStore, OECDResource
 
-import pandas
+import numpy as np
+import pandas as pd
 from pandas.compat import range
 import pandas.util.testing as tm
 
@@ -15,11 +16,11 @@ class TestOECDTestSite(tm.TestCase):
     def test_isvalid(self):
         self.assertTrue(self.store.is_valid())
 
-    def test_get(self):
-        result = self.store.get('UN_DEN')
-        self.assertTrue(isinstance(result, OECDResource))
+    def test_get_un_den(self):
+        data = self.store.get('UN_DEN')
+        self.assertTrue(isinstance(data, OECDResource))
 
-        df = result.read()
+        df = data.read()
 
         au = [50.17292785, 49.47181009, 49.52106174, 49.16341327, 48.19296375,
               47.8863461, 45.83517292, 45.02021403, 44.78983834, 44.37794217,
@@ -53,15 +54,28 @@ class TestOECDTestSite(tm.TestCase):
               14.31762091, 14.02052225, 13.55213736, 13.39571457, 13.36670812,
               12.90865079, 12.86997731, 12.76906383, 12.39142968, 12.02130767,
               11.96023574, 11.48458378, 11.56435375, 11.91022276, 11.79401904,
-              11.38345975, 11.32948829, 11.07884758,10.80789137]
+              11.38345975, 11.32948829, 11.07884758, 10.80789137]
 
-        index = pandas.Index(range(1960, 2014), dtype=int)
+        index = pd.DatetimeIndex(map(str, range(1960, 2014)))
         for label, values in [('Australia', au), ('Japan', jp), ('United States', us)]:
-            expected = pandas.Series(values, index=index)
+            expected = pd.Series(values, index=index)
             tm.assert_series_equal(df[label], expected)
 
-        raw_data = result.read(raw=True)
+        raw_data = data.read(raw=True)
         self.assertTrue(len(raw_data) > 0)
+
+    def test_get_tourism(self):
+        data = self.store.get('TOURISM_INBOUND')
+        df = data.read()
+
+        jp = np.array([6138, 6728, 7334, 8347, 8351, 6790, 8611, 6219, 8368, ], dtype=float)
+        us = np.array([np.nan, np.nan, 183178, 175142, 175632, 160359, 162269, 164672, 171630], dtype=float)
+
+        index = pd.DatetimeIndex(['2004', '2005', '2006', '2007', '2008',
+                                  '2009', '2010', '2011', '2012'])
+        for label, values in [('Japan', jp), ('United States', us)]:
+            expected = pd.Series(values, index=index)
+            tm.assert_series_equal(df[label]['Total international arrivals'], expected)
 
 
 if __name__ == '__main__':
