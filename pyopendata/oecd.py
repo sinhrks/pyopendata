@@ -86,4 +86,6 @@ class OECDResource(DataSource):
     def _read(self, **kwargs):
         data = self._requests_get().json()
         result = read_sdmx(data)
+        # There is data not be sorted by time
+        result = result.sort_index()
         return result

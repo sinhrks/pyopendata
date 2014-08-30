@@ -117,7 +117,6 @@ def _parse_dimensions(dimensions):
             if isinstance(index, list):
                 pass
             elif isinstance(index, dict):
-                # ToDo: valueの型確認
                 sorted_index = []
                 for k, v in sorted(index.items(), key=lambda x:x[1]):
                     sorted_index.append(k)
@@ -140,7 +139,7 @@ def _parse_dimensions(dimensions):
                 raise ValueError("'label' must be dict, "
                                  "{0} given".format(type(labels)))
 
-        arrays.append(index) # temporary
+        arrays.append(index)
 
     midx = pd.MultiIndex.from_product(arrays, names=names)
     return midx

@@ -113,7 +113,7 @@ class TestCKANTestSite(CKANTestBase):
             self.assertTrue(store.is_valid())
 
         # invalid URL
-        store = CKANStore('http://xxxx.xxx.xxx/')
+        store = CKANStore('http://google.com/')
         self.assertFalse(store.is_valid())
 
     def test_tags(self):

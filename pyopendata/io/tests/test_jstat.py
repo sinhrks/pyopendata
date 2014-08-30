@@ -12,8 +12,11 @@ from pyopendata.io import read_jstat
 
 class TestJStat(tm.TestCase):
 
+    def setUp(self):
+      self.dirpath = tm.get_data_path()
+
     def test_hierarchy(self):
-        result = read_jstat(os.path.join('data', 'jstat', 'hierarchy.json'))
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'hierarchy.json'))
         self.assertTrue(isinstance(result, pd.DataFrame))
         result = result.head(n=10)
 
@@ -25,7 +28,7 @@ class TestJStat(tm.TestCase):
         tm.assert_frame_equal(result, expected)
 
     def test_oecd_canada(self):
-        results = read_jstat(os.path.join('data', 'jstat', 'oecd-canada.json'))
+        results = read_jstat(os.path.join(self.dirpath, 'jstat', 'oecd-canada.json'))
         self.assertEqual(len(results), 2)
 
         result = results['oecd'].head(n=5)
@@ -70,7 +73,7 @@ class TestJStat(tm.TestCase):
         tm.assert_frame_equal(result, expected)
 
     def test_order(self):
-        result = read_jstat(os.path.join('data', 'jstat', 'order.json'))
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'order.json'))
         exp_idx = pd.MultiIndex.from_product([['1', '2', '3'], ['1', '2']], names=['A', 'B'])
         exp_col = pd.Index(['1', '2', '3', '4'], name='C')
         expected = pd.DataFrame({'1': ['A1B1C1', 'A1B2C1', 'A2B1C1', 'A2B2C1', 'A3B1C1', 'A3B2C1'],
@@ -80,7 +83,7 @@ class TestJStat(tm.TestCase):
                                 index=exp_idx, columns=exp_col)
         tm.assert_frame_equal(result, expected)
 
-        result = read_jstat(os.path.join('data', 'jstat', 'order.json'), typ='series')
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'order.json'), typ='series')
         exp_idx = pd.MultiIndex.from_product([['1', '2', '3'], ['1', '2'],
                                               ['1', '2', '3', '4']], names=['A', 'B', 'C'])
         expected = pd.Series(['A1B1C1', 'A1B1C2', 'A1B1C3', 'A1B1C4',
@@ -91,7 +94,7 @@ class TestJStat(tm.TestCase):
                               'A3B2C1', 'A3B2C2', 'A3B2C3', 'A3B2C4'], index=exp_idx)
         tm.assert_series_equal(result, expected)
 
-        result = read_jstat(os.path.join('data', 'jstat', 'order.json'), squeeze=False)
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'order.json'), squeeze=False)
         self.assertTrue(isinstance(result, dict))
         result = result['order']
         exp_idx = pd.MultiIndex.from_product([['1', '2', '3'], ['1', '2']], names=['A', 'B'])
@@ -104,7 +107,7 @@ class TestJStat(tm.TestCase):
         tm.assert_frame_equal(result, expected)
 
     def test_omit_values(self):
-        result = read_jstat(os.path.join('data', 'jstat', 'omit-values.json'))
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'omit-values.json'))
         exp_idx = pd.MultiIndex.from_product([['1', '2', '3'], ['1', '2']], names=['A', 'B'])
         exp_col = pd.Index(['1', '2', '3', '4'], name='C')
         expected = pd.DataFrame({'1': ['A1B1C1', 'A1B2C1', 'A2B1C1', 'A2B2C1', 'A3B1C1', 'A3B2C1'],
@@ -115,7 +118,7 @@ class TestJStat(tm.TestCase):
         tm.assert_frame_equal(result, expected)
 
     def test_us_gsp(self):
-        result = read_jstat(os.path.join('data', 'jstat', 'us-gsp.json'))
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'us-gsp.json'))
         result = result.head(n=10)
 
         exp_idx = pd.MultiIndex.from_product([['2013'],
@@ -140,7 +143,7 @@ class TestJStat(tm.TestCase):
         tm.assert_frame_equal(result, expected)
 
     def test_us_labor(self):
-        result = read_jstat(os.path.join('data', 'jstat', 'us-labor.json'))
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'us-labor.json'))
         result = result.head(n=10)
 
         exp_idx = pd.MultiIndex.from_product([['2012'],
@@ -167,7 +170,7 @@ class TestJStat(tm.TestCase):
         tm.assert_frame_equal(result, expected)
 
     def test_us_unr(self):
-        result = read_jstat(os.path.join('data', 'jstat', 'us-unr.json'))
+        result = read_jstat(os.path.join(self.dirpath, 'jstat', 'us-unr.json'))
         result = result.head(n=10)
 
         exp_idx = pd.MultiIndex.from_product([['2012'],

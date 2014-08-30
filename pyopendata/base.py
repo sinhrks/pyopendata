@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 import requests
-
 import pandas
+
 
 class DataSource(pandas.core.base.StringMixin):
     """
