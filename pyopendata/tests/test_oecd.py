@@ -15,7 +15,7 @@ class TestOECDTestSite(tm.TestCase):
     def test_isvalid(self):
         self.assertTrue(self.store.is_valid())
 
-    def test_get(self):
+    def test_get_un_den(self):
         result = self.store.get('UN_DEN')
         self.assertTrue(isinstance(result, OECDResource))
 
@@ -53,7 +53,7 @@ class TestOECDTestSite(tm.TestCase):
               14.31762091, 14.02052225, 13.55213736, 13.39571457, 13.36670812,
               12.90865079, 12.86997731, 12.76906383, 12.39142968, 12.02130767,
               11.96023574, 11.48458378, 11.56435375, 11.91022276, 11.79401904,
-              11.38345975, 11.32948829, 11.07884758,10.80789137]
+              11.38345975, 11.32948829, 11.07884758, 10.80789137]
 
         index = pandas.Index(range(1960, 2014), dtype=int)
         for label, values in [('Australia', au), ('Japan', jp), ('United States', us)]:
@@ -62,6 +62,11 @@ class TestOECDTestSite(tm.TestCase):
 
         raw_data = result.read(raw=True)
         self.assertTrue(len(raw_data) > 0)
+
+    def test_get_tourism(self):
+        # result = self.store.get('STLABOUR')
+        # result = self.store.get('TOURISM_INBOUND')
+        pass
 
 
 if __name__ == '__main__':

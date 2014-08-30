@@ -1,10 +1,13 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
-import pandas
+from __future__ import unicode_literals
+
 import numpy as np
-from pandas.compat import u, range, iterkeys, iteritems
+import pandas as pd
+from pandas.compat import iterkeys
 
 from pyopendata.base import RDFStore, DataSource
+from pyopendata.io import read_sdmx
 
 class OECDStore(RDFStore):
 
@@ -80,41 +83,7 @@ class OECDStore(RDFStore):
 
 class OECDResource(DataSource):
 
-    def _get_values_from_dict(self, d, required_num):
-        """
-        Parse OECD returned json format
-        """
-        values = []
-        for i in range(required_num):
-            try:
-                value = d[str(i)][0]
-            except KeyError:
-                value = np.nan
-            values.append(value)
-        return values
-
     def _read(self, **kwargs):
         data = self._requests_get().json()
-        # create index and column
-        structure = data['structure']
-        index = structure['dimensions']['observation'][0]['values']
-        columns = structure['dimensions']['series'][0]['values']
-
-        # Currently supports yearly data only
-        index = [int(i['name']) for i in index]
-        columns = [c['name'] for c in columns]
-
-        dataset = data['dataSets']
-        # assert len(dataset) == 1
-        dataset = dataset[0]
-        series = dataset['series']
-
-        df_data = {}
-        for k, v in iteritems(series):
-            # each observation contains time-series data (index-wise data)
-            obs = v['observations']
-            values = self._get_values_from_dict(obs, len(index))
-            df_data_key = columns[int(k)]
-            df_data[df_data_key] = values
-        return pandas.DataFrame(df_data, columns=columns, index=index)
-
+        result = read_sdmx(data)
+        return result
