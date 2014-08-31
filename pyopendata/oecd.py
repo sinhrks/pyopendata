@@ -6,17 +6,18 @@ import numpy as np
 import pandas as pd
 from pandas.compat import iterkeys
 
-from pyopendata.base import RDFStore, DataSource
-from pyopendata.io import read_sdmx
+from pyopendata.base import DataStore, DataResource
+from pyopendata.io import read_jsdmx
 
-class OECDStore(RDFStore):
-
-    _url = 'http://stats.oecd.org/SDMX-JSON/data/'
-
+class OECDStore(DataStore):
     """
     Storage class to read OECD data
     """
     # http://www.oecd.org/about/membersandpartners/list-oecd-member-countries.htm
+
+    _url = 'http://stats.oecd.org/SDMX-JSON/data'
+    _cache_attrs = ['_datasets']
+
     _countries = {'AUS': 'AUSTRALIA',
                   'AUT': 'AUSTRIA',
                   'BEL': 'BELGIUM',
@@ -53,14 +54,8 @@ class OECDStore(RDFStore):
                   'USA': 'UNITED STATES',
                   'OECD': 'OECD'}
 
-    def __init__(self, **kwargs):
-        RDFStore.__init__(self, url=self._url, **kwargs)
-
-        # cache
-        self._datasets = None
-
-    def __unicode__(self):
-        return '{0} ({1})'.format(self.__class__.__name__, self.url)
+    # def __init__(self, **kwargs):
+    #     DataStore.__init__(self, url=self._url, **kwargs)
 
     def is_valid(self):
         """
@@ -81,11 +76,11 @@ class OECDStore(RDFStore):
         return OECDResource(id=data_id, url=url)
 
 
-class OECDResource(DataSource):
+class OECDResource(DataResource):
 
     def _read(self, **kwargs):
         data = self._requests_get().json()
-        result = read_sdmx(data)
+        result = read_jsdmx(data)
         # There is data not be sorted by time
         result = result.sort_index()
         return result

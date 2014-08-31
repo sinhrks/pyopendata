@@ -4,9 +4,10 @@ from __future__ import unicode_literals
 
 import pandas
 
-from pyopendata.base import RDFStore, DataSource
+from pyopendata.base import DataStore, DataResource
 
-class CKANStore(RDFStore):
+
+class CKANStore(DataStore):
     """
     Storage class to read data via CKAN API
 
@@ -16,17 +17,16 @@ class CKANStore(RDFStore):
         URL for CKAN API
 
     """
-    def __init__(self, url, **kwargs):
-        RDFStore.__init__(self, url=url, **kwargs)
 
-        if self.url.endswith('api'):
+    _cache_attrs = ['_datasets', '_packages', '_groups', '_tags']
+
+    @classmethod
+    def _normalize_url(cls, url):
+        url = DataStore._normalize_url(url)
+        if url.endswith('api'):
             # remove '/api'
-            self.url = self.url[:-4]
-
-        # cache
-        self._packages = None
-        self._groups = None
-        self._tags = None
+            url = url[:-4]
+        return url
 
     def is_valid(self):
         """
@@ -192,10 +192,10 @@ class CKANStore(RDFStore):
         return response_dict['result']
 
 
-class CKANPackage(RDFStore):
+class CKANPackage(DataResource):
 
     def __init__(self, _store=None, resources=None, name=None, **kwargs):
-        RDFStore.__init__(self, **kwargs)
+        DataResource.__init__(self, **kwargs)
 
         if _store is None:
             raise ValueError('_store must be passed')
@@ -255,12 +255,12 @@ class CKANPackage(RDFStore):
             raise ValueError('Package has {0} resources. Specify target CKANResource to read'.format(source_len))
 
 
-class CKANResource(RDFStore):
+class CKANResource(DataResource):
     _attrs = ['size_text']
     _supported_formats = ('CSV', 'JSON', 'XLS')
 
     def __init__(self, _store=None, resources=None, **kwargs):
-        RDFStore.__init__(self, **kwargs)
+        DataResource.__init__(self, **kwargs)
 
         if _store is None:
             raise ValueError('_store must be passed')
@@ -305,7 +305,7 @@ Format: {format}, Size: {size}""".format(id=self.id, name=self.name,
           Use ``raw=True`` to get raw data in such cases.
         """
         if self.resources is None:
-            return DataSource.read(self, raw=raw, **kwargs)
+            return DataResource.read(self, raw=raw, **kwargs)
         else:
             source_len = len(self.resources)
             if source_len == 0:

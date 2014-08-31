@@ -6,24 +6,18 @@ import pandas
 import numpy as np
 from pandas.compat import u, range, iterkeys, iteritems
 
-from pyopendata.base import RDFStore
+from pyopendata.base import DataStore, DataResource
+import pyopendata.io.sdmx as sdmx
 
-class EuroStatStore(RDFStore):
 
-    _url = 'http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest/'
-
+class EuroStatStore(DataStore):
     """
     Storage class to read Eurostat data
     """
     # http://epp.eurostat.ec.europa.eu/portal/page/portal/sdmx_web_services/getting_started/rest_sdmx_2.1
-    def __init__(self, **kwargs):
-        RDFStore.__init__(self, url=self._url, **kwargs)
 
-        # cache
-        self._datasets = None
-
-    def __unicode__(self):
-        return '{0} ({1})'.format(self.__class__.__name__, self.url)
+    _url = 'http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest'
+    _cache_attrs = ['_datasets']
 
     def is_valid(self):
         """
@@ -36,19 +30,53 @@ class EuroStatStore(RDFStore):
         return True
 
     def get(self, data_id):
-        raise NotImplementedError
+        resource = EuroStatResource(id=data_id)
+        return resource
 
     @property
     def datasets(self):
-        response = self._requests_get('/dataflow/ESTAT/all/latest')
-        import xml.etree.ElementTree as ET
-        root = ET.fromstring(response.content)
-        structure = '{http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure}'
+        if self._datasets is None:
+            response = self._requests_get('/dataflow/ESTAT/all/latest')
+            import xml.etree.cElementTree as ET
+            root = ET.fromstring(response.content)
 
-        result = []
-        for dataflow in root.iter(structure + 'Dataflow'):
-            result.append(dataflow)
+            self._datasets = []
+            for dataflow in root.iter(sdmx._STRUCTURE + 'Dataflow'):
+                name = sdmx._get_english_name(dataflow)
+                id = dataflow.get('id')
+                resource = EuroStatResource(name=name, id=id)
+                self._datasets.append(resource)
+        return self._datasets
+
+
+class EuroStatResource(DataResource):
+
+    def __init__(self, **kwargs):
+        DataResource.__init__(self, **kwargs)
+        self.url = EuroStatStore._url + '/data/{0}/?'.format(self.id)
+        self.dsd_url = EuroStatStore._url + '/datastructure/ESTAT/DSD_{0}'.format(self.id)
+
+        self._dsd = None
+
+    @property
+    def dsd(self):
+        if self._dsd is None:
+            dsd = self._requests_get(url=self.dsd_url).content
+            self._dsd = sdmx._read_sdmx_dsd(dsd)
+        return self._dsd
+
+    def _read(self, **kwargs):
+
+        try:
+            # try to use dsd if available
+            dsd = self.dsd
+        except Exception:
+            dsd = None
+
+        data = self._requests_get().content
+        result = sdmx.read_sdmx(data, dsd=dsd)
+        # There is data not be sorted by time
+        result = result.sort_index()
         return result
-
 
 

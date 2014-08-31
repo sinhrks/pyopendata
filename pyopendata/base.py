@@ -6,12 +6,20 @@ import requests
 import pandas
 
 
-class DataSource(pandas.core.base.StringMixin):
+class DataResource(pandas.core.base.StringMixin):
     """
     Represents a data contained in the URL
     """
 
+    # url being used as default / static
+    _url = None
+    # kwargs which should be stored as instance properties
     _attrs = []
+    # instance properties used as cache
+    _cache_attrs = []
+
+    # default
+    proxies = []
 
     def __init__(self, format=None, id=None, name=None, url=None, proxies=None,
                  size=None, **kwargs):
@@ -30,25 +38,40 @@ class DataSource(pandas.core.base.StringMixin):
             value = kwargs.pop(attr, None)
             setattr(self, attr, value)
 
+        self._initialize_attrs(self)
+
         self.kwargs = kwargs
 
     def __unicode__(self):
         return '{0} ({1})'.format(self.__class__.__name__, self.url)
 
-    def _normalize_url(self, url):
+    @classmethod
+    def _initialize_attrs(cls, obj):
+        """
+        Initialize object with class attributes
+        """
+        # initialize cache attrs
+        for attr in cls._cache_attrs:
+            setattr(obj, attr, None)
+        return obj
+
+    @classmethod
+    def _normalize_url(cls, url):
         if url is None:
-            return url
+            return cls._url
         elif url.endswith('/'):
             # remove final slash to handle sitename and filename commonly
             return url[:-1]
         else:
             return url
 
-    def _requests_get(self, action='', params=None):
+    def _requests_get(self, action='',  params=None, url=None):
         """
         Internal requests.get to handle proxy
         """
-        response = requests.get(self.url + action, params=params, proxies=self.proxies)
+        if url is None:
+            url = self.url
+        response = requests.get(url + action, params=params, proxies=self.proxies)
         return response
 
     def read(self, raw=False, **kwargs):
@@ -86,8 +109,40 @@ class DataSource(pandas.core.base.StringMixin):
         return response.content
 
 
-class RDFStore(DataSource):
+class DataStore(DataResource):
     _connection_errors = (requests.exceptions.ConnectionError, ValueError)
+    _cache_attrs = ['_datasets']
+
+    def __new__(cls, kind_or_url=None):
+        from pyopendata.oecd import OECDStore
+        from pyopendata.eurostat import EuroStatStore
+        from pyopendata.ckan import CKANStore
+
+        if kind_or_url == 'oecd' or cls is OECDStore:
+            return OECDStore._initialize()
+        elif kind_or_url == 'eurostat' or cls is EuroStatStore:
+            return EuroStatStore._initialize()
+
+        elif cls is CKANStore:
+            # skip validation if initialized with CKANStore directly
+            store = CKANStore._initialize(url=kind_or_url)
+            return store
+        else:
+            store = CKANStore._initialize(url=kind_or_url)
+            if store.is_valid():
+                return store
+        raise ValueError('Unable to initialize DataStore with {0}'.format(kind_or_url))
+
+    def __init__(self, kid_or_url=None):
+        # handle with __new__
+        pass
+
+    @classmethod
+    def _initialize(cls, url=None):
+        obj = object.__new__(cls)
+        obj.url = cls._normalize_url(url)
+        obj = cls._initialize_attrs(obj)
+        return obj
 
     def get(self, name):
         raise NotImplementedError
