@@ -9,7 +9,8 @@ import requests
 import numpy as np
 import pandas as pd
 import pandas.compat as compat
-from pandas.io.common import get_filepath_or_buffer
+
+from pyopendata.io.util import _read_content
 
 
 def read_jstat(path_or_buf, typ='frame', squeeze=True):
@@ -34,22 +35,7 @@ def read_jstat(path_or_buf, typ='frame', squeeze=True):
     results : Series, DataFrame, or dictionaly of Series or DataFrame.
     """
 
-    filepath_or_buffer, _ = get_filepath_or_buffer(path_or_buf)
-    if isinstance(filepath_or_buffer, compat.string_types):
-        try:
-            exists = os.path.exists(filepath_or_buffer)
-        except (TypeError,ValueError):
-            exists = False
-
-        if exists:
-            with open(filepath_or_buffer, 'r') as fh:
-                jdata = fh.read()
-        else:
-            jdata = filepath_or_buffer
-    elif hasattr(filepath_or_buffer, 'read'):
-        jdata = filepath_or_buffer.read()
-    else:
-        jdata= filepath_or_buffer
+    jdata = _read_content(path_or_buf)
 
     import json
     if isinstance(jdata, dict):
