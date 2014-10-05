@@ -5,6 +5,8 @@
    pd.options.display.max_columns=10
    pd.options.display.max_rows=10
 
+.. _overview.overview:
+
 Overview
 ========
 
@@ -22,6 +24,7 @@ Use ``pip``.
 
     pip install pyopendata
 
+.. _overview.basic:
 
 Basic Usage
 ===========
