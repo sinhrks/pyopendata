@@ -26,9 +26,9 @@ http://pyopendata.readthedocs.org/en/latest/
 Installation
 ~~~~~~~~~~~~
 
-```sh
-pip install pyopendata
-```
+.. code-block:: sh
+
+    install pyopendata
 
 Usage
 ~~~~~
