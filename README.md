@@ -4,7 +4,7 @@
 
 ## Overview
 
-``pyopendata`` is an Python utility to offer an unified API to wolrd various data sources,
+``pyopendata`` is an Python utility to offer an unified API to world various data sources,
 outputs ``pandas.DataFrame`` format.
 
 ## Installation
