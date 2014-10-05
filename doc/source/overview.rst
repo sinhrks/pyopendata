@@ -17,6 +17,8 @@ Installation
 
 Use ``pip``.
 
+.. code-block:: sh
+
    pip install pyopendata
 
 

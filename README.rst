@@ -28,7 +28,7 @@ Installation
 
 .. code-block:: sh
 
-    install pyopendata
+    pip install pyopendata
 
 Usage
 ~~~~~
