@@ -1,10 +1,13 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
 from __future__ import unicode_literals
+from __future__ import division
+
+import sys
 
 import requests
 import pandas
-
+from pandas.compat import StringIO, bytes_to_str, binary_type
 
 class DataResource(pandas.core.base.StringMixin):
     """
@@ -18,8 +21,7 @@ class DataResource(pandas.core.base.StringMixin):
     # instance properties used as cache
     _cache_attrs = []
 
-    # default
-    proxies = []
+    _chunk_size = 1024 * 1024
 
     def __init__(self, format=None, id=None, name=None, url=None, proxies=None,
                  size=None, **kwargs):
@@ -95,7 +97,8 @@ class DataResource(pandas.core.base.StringMixin):
           Use ``raw=True`` to get raw data in such cases.
         """
         if raw:
-            return self._read_raw(**kwargs)
+            content = self._read_raw(**kwargs)
+            return content.getvalue()
         else:
             return self._read(**kwargs)
 
@@ -103,44 +106,65 @@ class DataResource(pandas.core.base.StringMixin):
         raise NotImplementedError
 
     def _read_raw(self, **kwargs):
-        if self.url is None:
-            raise ValueError('Unable to read raw data because URL is None')
         response = self._requests_get()
-        return response.content
+        content_length = response.headers.get('content-length')
+        out = StringIO()
+
+        try:
+            content_length = int(content_length)
+            downloaded = 0
+            pb_len      # progress bar's number of characters
+
+            for chunk in response.iter_content(self._chunk_size):
+                if chunk:
+                    out.write(chunk)
+                    downloaded += self._chunk_size
+                    done = max(int(pb_len * downloaded / content_length), pb_len)
+                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (pb_len - done)) )
+                    sys.stdout.flush()
+            return out
+        except Exception:
+            # no content_length or any errors
+            if isinstance(response.content, binary_type):
+                out.write(bytes_to_str(response.content))
+            else:
+                out.write(response.content)
+            return out
 
 
 class DataStore(DataResource):
     _connection_errors = (requests.exceptions.ConnectionError, ValueError)
     _cache_attrs = ['_datasets']
 
-    def __new__(cls, kind_or_url=None):
+    def __new__(cls, kind_or_url=None, proxies=None):
         from pyopendata.oecd import OECDStore
         from pyopendata.eurostat import EuroStatStore
         from pyopendata.ckan import CKANStore
 
         if kind_or_url == 'oecd' or cls is OECDStore:
-            return OECDStore._initialize()
+            return OECDStore._initialize(proxies=proxies)
         elif kind_or_url == 'eurostat' or cls is EuroStatStore:
-            return EuroStatStore._initialize()
+            return EuroStatStore._initialize(proxies=proxies)
 
         elif cls is CKANStore:
             # skip validation if initialized with CKANStore directly
-            store = CKANStore._initialize(url=kind_or_url)
+            store = CKANStore._initialize(url=kind_or_url, proxies=proxies)
             return store
         else:
-            store = CKANStore._initialize(url=kind_or_url)
+            store = CKANStore._initialize(url=kind_or_url, proxies=proxies)
             if store.is_valid():
                 return store
         raise ValueError('Unable to initialize DataStore with {0}'.format(kind_or_url))
 
-    def __init__(self, kid_or_url=None):
+    def __init__(self, kid_or_url=None, proxies=None):
         # handle with __new__
         pass
 
     @classmethod
-    def _initialize(cls, url=None):
+    def _initialize(cls, url=None, proxies=None):
         obj = object.__new__(cls)
         obj.url = cls._normalize_url(url)
+        obj.proxies = proxies
         obj = cls._initialize_attrs(obj)
         return obj
 

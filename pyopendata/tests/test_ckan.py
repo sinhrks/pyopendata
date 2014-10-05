@@ -206,10 +206,16 @@ class TestDATAGOV(CKANTestBase):
 
 class TestDATAGOJP(CKANTestBase):
     _url = 'http://www.data.go.jp/data'
-    _package = 'meti_08_ds_140304_00015335'
-    _resource = 'e93689c6-4c08-4fca-af31-45c61113c395'
+    # _package = 'meti_08_ds_140304_00015335'
+    _package = 'soumu_20140909_0696'
+    # _resource = 'e93689c6-4c08-4fca-af31-45c61113c395'
+    _resource = '8933bba5-2cbd-4354-b763-0d1439cac8e3'
     _search = '経済'
-    _group = 'mof_07_gr_131126_00001888'
+    _group = 'gr_0100'
+
+    def test_isvalid(self):
+        # site_read is disabled in data.go.jp
+        self.assertTrue(not self.store.is_valid())
 
     def test_tags(self):
         result = self.store.tags
@@ -224,20 +230,11 @@ class TestDATAGOJP(CKANTestBase):
         for r in package.resources:
             # row names differs depending on yearly / quarterly formats
             if r.format in CKANResource._supported_formats:
+                if r.id == 'c67b60d6-1fed-478b-9219-1dd98a3691ec':
+                    # csv has incorrect format
+                    continue
                 df = r.read()
-                if r.id in ('e93689c6-4c08-4fca-af31-45c61113c395',
-                            '0f7bdfb1-161e-439f-894e-64379afbb5f4',
-                            '13a96b83-1a4a-4178-80a1-a4a3f183ba45',
-                            'b4fa36d2-538a-42df-89e3-ef55cb48c92f'):
-                    self.assertEqual(df.shape, (302, 141))
-                elif r.id in ('01a34ba2-26f1-4065-8229-be2bd4419c7c',
-                              '8eb7ac30-18fa-41f9-826b-e2bbb8316f0a'):
-                    self.assertEqual(df.shape, (302, 73))
-                elif r.id in ('f6683af1-d8be-4967-9d9e-e7acab49ac99',
-                              '0fd053be-57c1-4631-952a-9b5666b2394d'):
-                    self.assertEqual(df.shape, (302, 49))
-                else:
-                    raise ValueError(r.id, df.shape)
+                self.assertEqual(df.shape, (15, 18))
             else:
                 data = r.read(raw=True)
                 self.assertTrue(len(data) > 0)
