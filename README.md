@@ -7,6 +7,10 @@
 ``pyopendata`` is an Python utility to offer an unified API to world various data sources,
 outputs ``pandas.DataFrame`` format.
 
+## Documentation
+
+http://pyopendata.readthedocs.org/en/latest/
+
 ## Installation
 
 ```sh
@@ -18,22 +22,11 @@ pip install pyopendata
     >>> import pyopendata as pyod
 
     # You can create datastore for access by passing URL.
-    >>> store = pyod.CKANStore('http://catalog.data.gov/')
+    >>> store = pyod.DataStore('http://catalog.data.gov/')
     >>> store
     CKANStore (http://catalog.data.gov)
 
-    # Perform search by keywords. Results will be the list of datasets.
-    >>> results = store.search('department of health')
-    >>> results
-    [job-openings-and-labor-turnover-survey-f70f4 (1 resource),
-     business-identification-numbers-cross-referencing-bincs-system (1 resource),
-     american-community-survey (1 resource), ...]
-
-    # You can access to the dataset by slicing.
-    >>> results[0]
-    job-openings-and-labor-turnover-survey-f70f4 (1 resource)
-
-    # Or get datastore specifying name.
+    # Get package specifying name.
     >>> package = store.get('survey-summary')
     >>> package
     survey-summary (4 resources)
