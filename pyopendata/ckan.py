@@ -316,14 +316,20 @@ Format: {format}, Size: {size}""".format(id=self.id, name=self.name,
                 raise ValueError('Package has {0} resources. Use CKANResource.read()'.format(source_len))
 
     def _read(self, **kwargs):
-        if self.url is None:
-            raise ValueError('Unable to read data because url is None')
+        try:
+            # try to parse a StringIO first, then URL
+            content = pandas.compat.StringIO(self._read_raw().getvalue())
+            return self._read_ext(content, **kwargs)
+        except Exception:
+            return self._read_ext(self.url, **kwargs)
+
+    def _read_ext(self, target, **kwargs):
         if self.format in ('CSV', 'CSV/TXT'):
-            return pandas.read_csv(self.url, **kwargs)
+            return pandas.read_csv(target, **kwargs)
         elif self.format == 'XLS':
-            return pandas.read_excel(self.url, **kwargs)
+            return pandas.read_excel(target, **kwargs)
         elif self.format == 'JSON':
-            return pandas.read_json(self.url, **kwargs)
+            return pandas.read_json(target, **kwargs)
         elif self.format == 'N/A':
             raise ValueError('{0} is not available on the store'.format(self.name))
         else:

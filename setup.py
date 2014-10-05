@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pyopendata',
-      version='0.0.0',
+      version='0.0.1',
       description='Python utility to get open data from websites',
       author='sinhrks',
       author_email='sinhrks@gmail.com',
