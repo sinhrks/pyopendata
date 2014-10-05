@@ -15,8 +15,7 @@ http://ckan.org/instances/
 Initialize CKAN Datasource
 --------------------------
 
-To create ``DataStore`` for CKAN access, pass URL offers API. For example, `data.gov <http://www.data.gov>`_
- offers API via:
+To create ``DataStore`` for CKAN access, pass URL offers API. For example, `data.gov <http://www.data.gov>`_ offers API via:
 
 http://catalog.data.gov/api
 
