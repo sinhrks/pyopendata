@@ -10,7 +10,7 @@ Overview
 
 ``pyopendata`` is an Python utility to offer an unified API to world various data sources, outputs ``pandas.DataFrame`` format.
 
-This is an unstabled release and APIs are forced to be changed.
+This is an unstable release and APIs are forced to be changed.
 
 Installation
 ============

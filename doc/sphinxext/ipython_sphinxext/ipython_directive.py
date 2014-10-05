@@ -111,7 +111,6 @@ import re
 import sys
 import tempfile
 import ast
-from pandas.compat import zip, range, map, lmap, u, cStringIO as StringIO
 import warnings
 
 # To keep compatibility with various python versions
