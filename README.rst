@@ -16,12 +16,15 @@ Overview
 ~~~~~~~~
 
 ``pyopendata`` is a Python utility to offer an unified API to read world various data sources,
-and output ``pandas.DataFrame``.
+and output ``pandas.DataFrame``. Which covers:
+- CKAN websites (www.data.gov, www.data.go.jp, etc)
+- Eurostat
+- OECD
 
 Documentation
 ~~~~~~~~~~~~~
 
-http://pyopendata.readthedocs.org/en/latest/
+http://pyopendata.readthedocs.org/
 
 Installation
 ~~~~~~~~~~~~
