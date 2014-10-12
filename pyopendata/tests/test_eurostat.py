@@ -1,6 +1,6 @@
 # pylint: disable-msg=E1101,W0613,W0603
 
-from pyopendata import EuroStatStore, EuroStatResource
+from pyopendata import EurostatStore, EurostatResource
 
 import numpy as np
 import pandas as pd
@@ -8,10 +8,10 @@ from pandas.compat import range
 import pandas.util.testing as tm
 
 
-class TestEuroStatTestSite(tm.TestCase):
+class TestEurostatTestSite(tm.TestCase):
 
     def setUp(self):
-        self.store = EuroStatStore()
+        self.store = EurostatStore()
 
     def test_isvalid(self):
         self.assertTrue(self.store.is_valid())
@@ -21,7 +21,7 @@ class TestEuroStatTestSite(tm.TestCase):
 
         tested = False
         for resource in resources:
-            self.assertTrue(isinstance(resource, EuroStatResource))
+            self.assertTrue(isinstance(resource, EurostatResource))
 
             if resource.id == 'cdh_e_fos':
                 df = resource.read()
@@ -35,7 +35,7 @@ class TestEuroStatTestSite(tm.TestCase):
         # Employed doctorate holders in non managerial and non professional
         # occupations by fields of science (%)
         resource = self.store.get('cdh_e_fos')
-        self.assertTrue(isinstance(resource, EuroStatResource))
+        self.assertTrue(isinstance(resource, EurostatResource))
         df = resource.read()
 
         self.assertTrue(isinstance(df, pd.DataFrame))
@@ -60,7 +60,7 @@ class TestEuroStatTestSite(tm.TestCase):
     def test_get_sts_cobp_a(self):
         # Building permits - annual data (2010 = 100)
         resource = self.store.get('sts_cobp_a')
-        self.assertTrue(isinstance(resource, EuroStatResource))
+        self.assertTrue(isinstance(resource, EurostatResource))
         df = resource.read()
 
         self.assertTrue(isinstance(df, pd.DataFrame))

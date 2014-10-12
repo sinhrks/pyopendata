@@ -5,9 +5,14 @@ from __future__ import unicode_literals
 import numpy as np
 import pandas as pd
 from pandas.compat import iterkeys
+from pandas.util.decorators import Appender
 
-from pyopendata.base import DataStore, DataResource
+from pyopendata.base import DataStore, DataResource, _shared_docs
 from pyopendata.io import read_jsdmx
+
+
+_oecd_doc_kwargs = dict(resource_klass='OECDResource')
+
 
 class OECDStore(DataStore):
     """
@@ -57,23 +62,14 @@ class OECDStore(DataStore):
     # def __init__(self, **kwargs):
     #     DataStore.__init__(self, url=self._url, **kwargs)
 
-    def is_valid(self):
-        """
-        Check whether the site has valid API.
-
-        Returns
-        -------
-        is_valid : bool
-        """
-        return True
-
     @property
     def _target_countries(self):
         return '+'.join(list(iterkeys(self._countries)))
 
-    def get(self, data_id):
-        url = self.url + '/{0}/{1}/OECD?'.format(data_id, self._target_countries)
-        return OECDResource(id=data_id, url=url)
+    @Appender(_shared_docs['get'] % _oecd_doc_kwargs)
+    def get(self, resource_id):
+        url = self.url + '/{0}/{1}/OECD?'.format(resource_id, self._target_countries)
+        return OECDResource(id=resource_id, url=url)
 
 
 class OECDResource(DataResource):

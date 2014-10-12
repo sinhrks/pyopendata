@@ -8,7 +8,7 @@
 Access to Eurostat Datasource
 =============================
 
-Create ``DataStore`` for EuroStat by passing ``eurostat`` at initialization.
+Create ``DataStore`` for Eurostat by passing ``eurostat`` at initialization.
 
 .. ipython:: python
 

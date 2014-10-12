@@ -8,6 +8,12 @@ import sys
 import requests
 import pandas
 from pandas.compat import StringIO, bytes_to_str, binary_type
+from pandas.util.decorators import Appender
+
+
+_shared_docs = dict()
+_base_doc_kwargs = dict(resource_klass='DataResource')
+
 
 class DataResource(pandas.core.base.StringMixin):
     """
@@ -18,7 +24,7 @@ class DataResource(pandas.core.base.StringMixin):
     _url = None
     # kwargs which should be stored as instance properties
     _attrs = []
-    # instance properties used as cache
+    # instance properties used as cache (overwritten by inherited classes)
     _cache_attrs = []
 
     _chunk_size = 1024 * 1024
@@ -39,6 +45,8 @@ class DataResource(pandas.core.base.StringMixin):
         for attr in self._attrs:
             value = kwargs.pop(attr, None)
             setattr(self, attr, value)
+        # cache for raw content
+        self._raw_content = None
 
         self._initialize_attrs(self)
 
@@ -76,9 +84,8 @@ class DataResource(pandas.core.base.StringMixin):
         response = requests.get(url + action, params=params, proxies=self.proxies)
         return response
 
-    def read(self, raw=False, **kwargs):
-        """
-        Read data from resource
+    _shared_docs['read'] = (
+        """Read data from resource
 
         Parameters
         ----------
@@ -93,9 +100,12 @@ class DataResource(pandas.core.base.StringMixin):
 
         Notes
         -----
-        - When the resource format is other than CSV, parsing pandas.DataFrame may fail.
+        - Depending on the target format, parsing to ``pandas.DataFrame`` may fail.
           Use ``raw=True`` to get raw data in such cases.
-        """
+        """)
+
+    @Appender(_shared_docs['read'])
+    def read(self, raw=False, **kwargs):
         if raw:
             content = self._read_raw(**kwargs)
             return content.getvalue()
@@ -106,30 +116,32 @@ class DataResource(pandas.core.base.StringMixin):
         raise NotImplementedError
 
     def _read_raw(self, **kwargs):
-        response = self._requests_get()
-        content_length = response.headers.get('content-length')
-        out = StringIO()
+        if self._raw_content is None:
+            response = self._requests_get()
+            content_length = response.headers.get('content-length')
+            out = StringIO()
 
-        try:
-            content_length = int(content_length)
-            downloaded = 0
-            pb_len      # progress bar's number of characters
+            try:
+                content_length = int(content_length)
+                downloaded = 0
+                pb_len      # progress bar's number of characters
 
-            for chunk in response.iter_content(self._chunk_size):
-                if chunk:
-                    out.write(chunk)
-                    downloaded += self._chunk_size
-                    done = max(int(pb_len * downloaded / content_length), pb_len)
-                    sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (pb_len - done)) )
-                    sys.stdout.flush()
-            return out
-        except Exception:
-            # no content_length or any errors
-            if isinstance(response.content, binary_type):
-                out.write(bytes_to_str(response.content))
-            else:
-                out.write(response.content)
-            return out
+                for chunk in response.iter_content(self._chunk_size):
+                    if chunk:
+                        out.write(chunk)
+                        downloaded += self._chunk_size
+                        done = max(int(pb_len * downloaded / content_length), pb_len)
+                        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (pb_len - done)) )
+                        sys.stdout.flush()
+                self._raw_content = out
+            except Exception:
+                # no content_length or any errors
+                if isinstance(response.content, binary_type):
+                    out.write(bytes_to_str(response.content))
+                else:
+                    out.write(response.content)
+                self._raw_content = out
+        return self._raw_content
 
 
 class DataStore(DataResource):
@@ -138,13 +150,16 @@ class DataStore(DataResource):
 
     def __new__(cls, kind_or_url=None, proxies=None):
         from pyopendata.oecd import OECDStore
-        from pyopendata.eurostat import EuroStatStore
+        from pyopendata.eurostat import EurostatStore
+        from pyopendata.undata import UNdataStore
         from pyopendata.ckan import CKANStore
 
         if kind_or_url == 'oecd' or cls is OECDStore:
             return OECDStore._initialize(proxies=proxies)
-        elif kind_or_url == 'eurostat' or cls is EuroStatStore:
-            return EuroStatStore._initialize(proxies=proxies)
+        elif kind_or_url == 'eurostat' or cls is EurostatStore:
+            return EurostatStore._initialize(proxies=proxies)
+        elif kind_or_url == 'undata' or cls is UNdataStore:
+            return UNdataStore._initialize(proxies=proxies)
 
         elif cls is CKANStore:
             # skip validation if initialized with CKANStore directly
@@ -168,9 +183,49 @@ class DataStore(DataResource):
         obj = cls._initialize_attrs(obj)
         return obj
 
+    _shared_docs['is_valid'] = (
+        """Check whether the site has valid API.
+
+        Returns
+        -------
+        is_valid : bool
+        """)
+
+    @Appender(_shared_docs['is_valid'])
+    def is_valid(self):
+        return True
+
+    _shared_docs['get'] = (
+        """Get resource by resource_id.
+
+        Parameters
+        ----------
+        resource_id : str
+            id to specify resource
+
+        Returns
+        -------
+        result : %(resource_klass)s
+        """)
+
+    @Appender(_shared_docs['get'] % _base_doc_kwargs)
     def get(self, name):
         raise NotImplementedError
 
+    _shared_docs['search'] = (
+        """Search resources by search_string.
+
+        Parameters
+        ----------
+        search storing : str
+            keyword to search
+
+        Returns
+        -------
+        result : list of %(resource_klass)s
+        """)
+
+    @Appender(_shared_docs['search'] % _base_doc_kwargs)
     def search(self, serch_string):
         raise NotImplementedError
 

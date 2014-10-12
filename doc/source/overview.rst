@@ -29,9 +29,17 @@ Use ``pip``.
 Basic Usage
 ===========
 
-This section explains how to retrieve data from website which uses CKAN API.
+This section explains how to retrieve data from website which uses CKAN API.You can create ``DataStore`` instance to access CKAN website by passing CKAN URL to ``DataStore`` class.
 
-You can create ``DataStore`` instance to access CKAN website by passing CKAN URL to ``DataStore`` class.
+In this example, we're going to retrieve the 'California Unemployment Statistics' data from data.gov. The target URL is:
+
+* https://catalog.data.gov/dataset/california-unemployment-statistics/resource/ffd05307-4528-4d15-a370-c16222119227
+
+We can read abov URL as:
+
+  * CKAN API URL: https://catalog.data.gov/dataset
+  * Package ID: california-unemployment-statistics
+  * Resource ID: ffd05307-4528-4d15-a370-c16222119227
 
 .. ipython:: python
 
@@ -44,7 +52,7 @@ You can create ``DataStore`` instance to access CKAN website by passing CKAN URL
 
 .. ipython:: python
 
-    packages = store.search('department of health')
+    packages = store.search('Unemployment Statistics')
     packages
 
     packages[0]
@@ -54,28 +62,29 @@ Otherwise, specify the package name to be retrieved.
 
 .. ipython:: python
 
-    package = store.get('survey-summary')
+    package = store.get('california-unemployment-statistics')
     package
 
-A package has resources (files) which contains actual data. You can use ``read`` method to read data as pandas ``DataFrame``.
+A package has resources (files) which contains actual data. You use `get` method to retrieve the resource.
+
+.. ipython:: python
+
+    resource = package.get('ffd05307-4528-4d15-a370-c16222119227')
+    resource
+
+Once you get the resource, use ``read`` method to read data as pandas ``DataFrame``.
 
 .. important:: The target file must be the correct format which can be parsed by ``pandas`` IO functions.
 
 .. ipython:: python
 
-    package.resources[0]
-
-    df = package.resources[0].read()
+    df = resource.read()
     df.head()
 
 Or you can get raw data by specifying ``raw=True``.
 
 .. ipython:: python
 
-    raw = package.resources[0].read(raw=True)
+    raw = resource.read(raw=True)
     raw[:100]
 
-Development
-===========
-
-https://github.com/sinhrks/pyopendata

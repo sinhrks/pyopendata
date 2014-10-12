@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from pyopendata import DataStore, CKANStore, OECDStore, EuroStatStore
+from pyopendata import DataStore, CKANStore, OECDStore, EurostatStore
 
 import pandas.util.testing as tm
 
@@ -15,7 +15,7 @@ class TestDataStore(tm.TestCase):
         self.assertTrue(isinstance(store, OECDStore))
 
         store = DataStore('eurostat')
-        self.assertTrue(isinstance(store, EuroStatStore))
+        self.assertTrue(isinstance(store, EurostatStore))
 
         store = DataStore('http://catalog.data.gov')
         self.assertTrue(isinstance(store, CKANStore))
