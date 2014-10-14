@@ -289,7 +289,6 @@ class TestDATAGOJP(CKANTestBase):
             df = resource.read(sheetname=sheet, skiprows=[0, 1])
             self.assertEqual(df.shape, (150, 83))
             tm.assert_almost_equal(df.loc[1].values, expected[sheet])
-            # tm.assert_array_almost_equal(df[1].values, expected[sheet])
 
 
 """

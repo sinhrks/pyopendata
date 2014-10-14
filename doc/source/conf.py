@@ -259,3 +259,10 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# -- Build API doc ----------------------------------------------------------
+
+fpath = os.path.dirname(__file__)
+gen_path = os.path.join(fpath, 'generated')
+app_path = os.path.join(os.path.dirname(os.path.dirname(fpath)), 'pyopendata')
+os.system('sphinx-apidoc -f -o {0} {1}'.format(gen_path, app_path))
