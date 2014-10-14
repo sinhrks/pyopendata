@@ -2,9 +2,13 @@
 
 from __future__ import unicode_literals
 
-import pandas
+import pandas as pd
+from pandas.util.decorators import Appender
 
-from pyopendata.base import DataStore, DataResource
+from pyopendata.base import DataStore, DataResource, _shared_docs
+
+
+_ckan_doc_kwargs = dict(resource_klass='CKANResource')
 
 
 class CKANStore(DataStore):
@@ -28,14 +32,8 @@ class CKANStore(DataStore):
             url = url[:-4]
         return url
 
+    @Appender(_shared_docs['is_valid'])
     def is_valid(self):
-        """
-        Check whether the site has valid API.
-
-        Returns
-        -------
-        is_valid : bool
-        """
         try:
             response = self._requests_get('/api/action/site_read')
             results = self._validate_response(response)
@@ -85,19 +83,8 @@ class CKANStore(DataStore):
         results = self._validate_response(response)
         return CKANPackage(_store=self, **results)
 
+    @Appender(_shared_docs['get'] % _ckan_doc_kwargs)
     def get_resource(self, resource_id):
-        """
-        Get package related to resource_id.
-
-        Parameters
-        ----------
-        resource_id : str
-            id to specify resource
-
-        Returns
-        -------
-        result : CKANResource
-        """
         params = dict(id=resource_id)
         response = self._requests_get('/api/action/resource_show', params=params)
         results = self._validate_response(response)
@@ -117,6 +104,7 @@ class CKANStore(DataStore):
         results = results['packages']
         return [CKANPackage(_store=self, **r) for r in results]
 
+    @Appender(_shared_docs['search'] % _ckan_doc_kwargs)
     def search(self, search_string):
         # get smaller object to larger object (resource -> package)
         try:
@@ -227,6 +215,17 @@ class CKANPackage(DataResource):
             self._resources = self.store.get_package(self.name).resources
         return self._resources
 
+    @Appender(_shared_docs['get'] % _ckan_doc_kwargs)
+    def get(self, resource_id):
+        return self.get_resource(resource_id)
+
+    @Appender(_shared_docs['get'] % _ckan_doc_kwargs)
+    def get_resource(self, resource_id):
+        for r in self.resources:
+            if r.id == resource_id:
+                return r
+        raise KeyError('Unable to find resource {0} in {1}'.format(resouce_id, self.name))
+
     def read(self, raw=False, **kwargs):
         """
         Read data from its resource if the number of resource is 1.
@@ -248,7 +247,7 @@ class CKANPackage(DataResource):
             if raw:
                 return None
             else:
-                return pandas.DataFrame()
+                return pd.DataFrame()
         elif source_len == 1:
             return self.resources[0].read(raw=raw, **kwargs)
         else:
@@ -284,32 +283,14 @@ Format: {format}, Size: {size}""".format(id=self.id, name=self.name,
                                          size=self.size_text)
         return rep_str
 
+    @Appender(_shared_docs['read'])
     def read(self, raw=False, **kwargs):
-        """
-        Read data from resource
-
-        Parameters
-        ----------
-        raw : bool, default False
-            If False, return pandas.DataFrame. If True, return raw data
-        kwargs:
-            Keywords passed to pandas.read_xxx function
-
-        Returns
-        -------
-        data : pandas.DataFrame or requests.raw.data
-
-        Notes
-        -----
-        - When the resource format is other than CSV, parsing pandas.DataFrame may fail.
-          Use ``raw=True`` to get raw data in such cases.
-        """
         if self.resources is None:
             return DataResource.read(self, raw=raw, **kwargs)
         else:
             source_len = len(self.resources)
             if source_len == 0:
-                return pandas.DataFrame()
+                return pd.DataFrame()
             elif source_len == 1:
                 return self.resources[0].read(raw=raw, **kwargs)
             else:
@@ -318,18 +299,18 @@ Format: {format}, Size: {size}""".format(id=self.id, name=self.name,
     def _read(self, **kwargs):
         try:
             # try to parse a StringIO first, then URL
-            content = pandas.compat.StringIO(self._read_raw().getvalue())
+            content = self._read_raw()
             return self._read_ext(content, **kwargs)
         except Exception:
             return self._read_ext(self.url, **kwargs)
 
     def _read_ext(self, target, **kwargs):
         if self.format in ('CSV', 'CSV/TXT'):
-            return pandas.read_csv(target, **kwargs)
+            return pd.read_csv(target, **kwargs)
         elif self.format == 'XLS':
-            return pandas.read_excel(target, **kwargs)
+            return pd.read_excel(target, **kwargs)
         elif self.format == 'JSON':
-            return pandas.read_json(target, **kwargs)
+            return pd.read_json(target, **kwargs)
         elif self.format == 'N/A':
             raise ValueError('{0} is not available on the store'.format(self.name))
         else:

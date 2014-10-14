@@ -11,16 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   whatsnew
    overview
    ckan
    eurostat
    oecd
    io
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   api
 

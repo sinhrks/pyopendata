@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 from pyopendata import CKANStore, CKANPackage, CKANResource
 
+import numpy as np
 import pandas.util.testing as tm
 
 
@@ -60,12 +61,17 @@ class CKANTestBase(tm.TestCase):
             self.assertTrue(isinstance(package, CKANPackage))
             self.assertTrue(package.name is not None)
 
+        package = packages[0]
+
         # Some site doesn't return resources in xml
         # In this case, CKANPackage connect to retrieve its resources
         # To avoid long waiting time, only check 1st element
-        resource = packages[0].resources[0]
+        resource = package.resources[0]
         self.assertTrue(isinstance(resource, CKANResource))
         self.assertTrue(resource.url is not None)
+
+        got_resource = package.get(resource.id)
+        self.assertEqual(got_resource.id, resource.id)
 
     def test_resource(self):
         if not self._allow_resouce:
@@ -238,6 +244,53 @@ class TestDATAGOJP(CKANTestBase):
             else:
                 data = r.read(raw=True)
                 self.assertTrue(len(data) > 0)
+
+    def test_mining_manufacture(self):
+        # 鉱工業指数の取得テスト
+        # http://sinhrks.hatenablog.com/entry/2014/10/06/222110
+        resource = self.store.get('aad25837-7e83-4881-9372-1839ecb9b5eb')
+
+        expected = {
+            '在庫': np.array(['2A00000000', '製造工業', 9988.1,
+                121.2, 120.9, 109.2, 109.3, 113.3, 114.2, 116.2,
+                116, 113.4, 119.3, 123.1, 121.9, 125.8, 119.7, 104.9, 104, 105.5, 103.2,
+                103.7, 103.1, 99.3, 100.8, 102.9, 100.5, 104.7, 105.3, 93.9, 96.2, 99.8,
+                98.6, 99.4, 98.8, 96.7, 101.1, 102.7, 102.9, 109, 107.6, 92.1, 95.4, 103.8,
+                103.4, 105.8, 107.7, 104.5, 108.1, 109.3, 105, 110.8, 110.5, 103.3, 107,
+                109.3, 108.9, 112.5, 113.4, 110, 113.7, 114.7, 110.5, 114.3, 111, 100.2,
+                102.4, 106.3,105.7, 109.4, 109.5, 106.2, 109.6, 108.8, 105.7, 109.8, 107.2,
+                98.7, 100.5, 107.2, 108.7, 112.6, 114.6], dtype=object),
+            '出荷': np.array(['2A00000000', '製造工業', 9985.7,
+                108.9, 117.0, 130.4, 109.6, 107.5, 115.1, 116.8, 101.2, 117.6,
+                108.9, 99.1, 95.1, 75.3, 74.7, 88.4, 75.9, 75.2, 88.9, 90.8, 82.0, 97.9, 95.4,
+                95.6, 99.0, 89.0, 95.0, 113.6, 95.3, 90.5, 103.8, 103.8, 94.4, 110.2, 98.0,
+                102.6, 103.8, 91.4, 98.0, 98.8, 78.7, 82.3, 101.4, 100.0, 95.1, 107.1, 99.5,
+                99.8, 102.7, 91.4, 101.0, 113.4, 94.0, 93.7, 101.7, 100.3, 92.5, 98.5, 94.4, 93.8,
+                94.7, 87.3, 92.3, 106.9, 91.2, 91.6, 96.4, 101.8, 91.2, 103, 100.3, 100, 100.8, 95.5,
+                98.3, 113.9, 93.4, 90.9, 98.5, 101.6, 88], dtype=object),
+            '生産': np.array(['2A00000000', '製造工業',
+                9978.9, 108.5, 117.0, 125.3, 111.0, 108.7, 115.9, 117.9, 101.2, 116.9, 111.7, 100.6,
+                93.6, 76.5, 73.5, 84.2, 77.6, 77.3, 89.3, 91.3, 82.3, 96.0, 95.7, 96.6, 97.6, 88.8,
+                94.7, 108.9, 96.2, 92.1, 103.9, 104.8, 95.7, 108.4, 100.3, 103.2, 102.9, 92.6, 98.5,
+                94.4, 83.3, 87.4, 102.4, 102.1, 96.7, 105.2, 101.8, 100.7, 101.0, 92.8, 101.5, 110.1,
+                95.9, 94.0, 101.9, 102.2, 92.7, 97.1, 97.0, 95.2, 93.2, 86.9, 91.3, 102.4, 92.8, 93.1,
+                97, 104.1, 92.1, 102.2, 102.3, 99.8, 100, 96.1, 97.8, 110, 96.3, 94, 100, 103.4, 89.4],
+                dtype=object)}
+
+        for i, sheet in enumerate(expected):
+            # check cache
+            if i == 0:
+                self.assertTrue(resource._raw_content is None)
+
+            # Failed in Python 3
+            # else:
+            #     self.assertTrue(resource._raw_content is not None)
+
+            df = resource.read(sheetname=sheet, skiprows=[0, 1])
+            self.assertEqual(df.shape, (150, 83))
+            tm.assert_almost_equal(df.loc[1].values, expected[sheet])
+            # tm.assert_array_almost_equal(df[1].values, expected[sheet])
+
 
 """
 class TestDATAGOVUK(tm.TestCase):

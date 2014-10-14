@@ -2,15 +2,19 @@
 
 from __future__ import unicode_literals
 
-import pandas
 import numpy as np
+import pandas as pd
 from pandas.compat import u, range, iterkeys, iteritems
+from pandas.util.decorators import Appender
 
-from pyopendata.base import DataStore, DataResource
+from pyopendata.base import DataStore, DataResource, _shared_docs
 import pyopendata.io.sdmx as sdmx
 
 
-class EuroStatStore(DataStore):
+_eurostat_doc_kwargs = dict(resource_klass='EurostatResource')
+
+
+class EurostatStore(DataStore):
     """
     Storage class to read Eurostat data
     """
@@ -19,18 +23,9 @@ class EuroStatStore(DataStore):
     _url = 'http://www.ec.europa.eu/eurostat/SDMX/diss-web/rest'
     _cache_attrs = ['_datasets']
 
-    def is_valid(self):
-        """
-        Check whether the site has valid API.
-
-        Returns
-        -------
-        is_valid : bool
-        """
-        return True
-
+    @Appender(_shared_docs['get'] % _eurostat_doc_kwargs)
     def get(self, data_id):
-        resource = EuroStatResource(id=data_id)
+        resource = EurostatResource(id=data_id)
         return resource
 
     @property
@@ -44,17 +39,17 @@ class EuroStatStore(DataStore):
             for dataflow in root.iter(sdmx._STRUCTURE + 'Dataflow'):
                 name = sdmx._get_english_name(dataflow)
                 id = dataflow.get('id')
-                resource = EuroStatResource(name=name, id=id)
+                resource = EurostatResource(name=name, id=id)
                 self._datasets.append(resource)
         return self._datasets
 
 
-class EuroStatResource(DataResource):
+class EurostatResource(DataResource):
 
     def __init__(self, **kwargs):
         DataResource.__init__(self, **kwargs)
-        self.url = EuroStatStore._url + '/data/{0}/?'.format(self.id)
-        self.dsd_url = EuroStatStore._url + '/datastructure/ESTAT/DSD_{0}'.format(self.id)
+        self.url = EurostatStore._url + '/data/{0}/?'.format(self.id)
+        self.dsd_url = EurostatStore._url + '/datastructure/ESTAT/DSD_{0}'.format(self.id)
 
         self._dsd = None
 
@@ -75,7 +70,7 @@ class EuroStatResource(DataResource):
 
         data = self._requests_get().content
         result = sdmx.read_sdmx(data, dsd=dsd)
-        # There is data not be sorted by time
+        # There is data not sorted by time
         result = result.sort_index()
         return result
 
