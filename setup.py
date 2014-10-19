@@ -12,7 +12,7 @@ REQUIREMENTS = 'requirements.txt'
 # required modules for test and doc build
 REQUIREMENTS_TEST = 'requirements_test.txt'
 
-VERSION = '0.0.2.dev'
+VERSION = '0.0.2'
 
 def read(fname):
   # file must be read as utf-8 in py3 to avoid to be bytes
@@ -33,7 +33,7 @@ write_version_py(filename=version_file)
 
 setup(name=PACKAGE,
       version=VERSION,
-      description='Python utility to get open data from CKAN, Eurostat and OECD websites',
+      description='Python utility to get open data from some popular websites',
       long_description=read(README),
       author='sinhrks',
       author_email='sinhrks@gmail.com',

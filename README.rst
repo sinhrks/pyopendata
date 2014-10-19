@@ -18,9 +18,10 @@ Overview
 ``pyopendata`` is a Python utility to offer an unified API to read world various data sources,
 and output ``pandas.DataFrame``. Which covers:
 
-* CKAN websites (www.data.gov, www.data.go.jp, etc)
-* Eurostat
-* OECD
+* CKAN websites ( `data.gov <http://www.data.gov/>`_ , `data.go.jp <http://www.data.go.jp>`_ , etc)
+* `Eurostat <http://epp.eurostat.ec.europa.eu/>`_
+* `OECD <http://www.oecd.org/>`_
+* `WorldBank <http://www.worldbank.org/>`_
 
 Documentation
 ~~~~~~~~~~~~~
@@ -95,6 +96,11 @@ A package has resources (files) which contains actual data. You use `get` method
 
     >>> resource = package.get('ffd05307-4528-4d15-a370-c16222119227')
     >>> resource
+    Resource ID: ffd05307-4528-4d15-a370-c16222119227
+    Resource Name: Comma Separated Values File
+    Resource URL: https://data.lacity.org/api/views/5zrb-xqhf/rows.csv?accessType=DOWNLOAD
+    Format: CSV, Size: None
+
 
 Once you get the resource, use ``read`` method to read data as pandas ``DataFrame``.
 
