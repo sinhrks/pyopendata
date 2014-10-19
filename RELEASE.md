@@ -1,4 +1,6 @@
 Release Notes
 =============
 
-0.0.1 Initial Release
+See:
+
+* http://pyopendata.readthedocs.org/en/latest/whatsnew.html
