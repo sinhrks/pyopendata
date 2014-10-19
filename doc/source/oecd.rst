@@ -17,14 +17,20 @@ Create ``DataStore`` for OECD by passing ``oecd`` at initialization.
     store = pyod.DataStore('oecd')
     store
 
-Get `Trade Union Density <http://stats.oecd.org/Index.aspx?DataSetCode=UN_DEN>`_ data. The result will be a ``DataFrame`` which has ``DatetimeIndex`` as index and conutries as column.
+Get `Trade Union Density <http://stats.oecd.org/Index.aspx?DataSetCode=UN_DEN>`_ data. The result will be a ``DataFrame`` which has ``DatetimeIndex`` as index and conutries as column. The target URL is:
+
+* http://stats.oecd.org/Index.aspx?DataSetCode=UN_DEN
+
+We can read abov URL as:
+
+  * Resource ID: UN_DEN
 
 .. ipython:: python
 
     resource = store.get('UN_DEN')
     resource
 
-    df = resource.read()
+    df = resource.read();
     df
 
 You can access to specific data by slicing column.
