@@ -17,14 +17,20 @@ Create ``DataStore`` for Eurostat by passing ``eurostat`` at initialization.
     store = pyod.DataStore('eurostat')
     store
 
-Get `Employed doctorate holders in non managerial and non professional occupations by fields of science <http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=cdh_e_fos&lang=en>`_ data. The result will be a ``DataFrame`` which has ``DatetimeIndex`` as index and ``MultiIndex`` of attributes or countries as column.
+Get `Employed doctorate holders in non managerial and non professional occupations by fields of science <http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=cdh_e_fos&lang=en>`_ data. The result will be a ``DataFrame`` which has ``DatetimeIndex`` as index and ``MultiIndex`` of attributes or countries as column. The target URL is:
+
+* http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=cdh_e_fos&lang=en
+
+We can read abov URL as:
+
+  * Resource ID: cdh_e_fos
 
 .. ipython:: python
 
     resource = store.get('cdh_e_fos')
     resource
 
-    df = resource.read()
+    df = resource.read();
     df
 
 You can access to specific data by slicing column.

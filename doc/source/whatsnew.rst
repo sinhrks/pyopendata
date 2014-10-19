@@ -11,6 +11,7 @@ What's New
 0.0.2
 -----
 
+- Support WorldBank API by `DataStore('worldbank')`.
 - `DataResource` now has `get` method to search a resource in the package.
 - `DataResource` now caches data once read from data source.
 - `EuroStatStore` and `EuroStatResource` renamed to `EurostatStore` and `EurostatResource`.

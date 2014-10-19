@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 from __future__ import division
 
+import os
 import sys
 
 import requests
@@ -10,6 +11,7 @@ import pandas
 from pandas.compat import StringIO, bytes_to_str, binary_type
 from pandas.util.decorators import Appender
 
+from pyopendata.util import network
 
 _shared_docs = dict()
 _base_doc_kwargs = dict(resource_klass='DataResource')
@@ -123,18 +125,15 @@ class DataResource(pandas.core.base.StringMixin):
 
             try:
                 content_length = int(content_length)
-                downloaded = 0
-                pb_len      # progress bar's number of characters
+                pb = network.ProgressBar(total=content_length)
 
                 for chunk in response.iter_content(self._chunk_size):
                     if chunk:
                         out.write(chunk)
-                        downloaded += self._chunk_size
-                        done = max(int(pb_len * downloaded / content_length), pb_len)
-                        sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (pb_len - done)) )
-                        sys.stdout.flush()
+                        pb.update(self._chunk_size)
                 self._raw_content = out
-            except Exception:
+            except Exception as e:
+                # print(e)
                 # no content_length or any errors
                 if isinstance(response.content, binary_type):
                     out.write(bytes_to_str(response.content))
@@ -149,10 +148,11 @@ class DataStore(DataResource):
     _cache_attrs = ['_datasets']
 
     def __new__(cls, kind_or_url=None, proxies=None):
-        from pyopendata.oecd import OECDStore
-        from pyopendata.eurostat import EurostatStore
-        from pyopendata.undata import UNdataStore
         from pyopendata.ckan import CKANStore
+        from pyopendata.eurostat import EurostatStore
+        from pyopendata.oecd import OECDStore
+        from pyopendata.undata import UNdataStore
+        from pyopendata.worldbank import WorldBankStore
 
         if kind_or_url == 'oecd' or cls is OECDStore:
             return OECDStore._initialize(proxies=proxies)
@@ -160,6 +160,8 @@ class DataStore(DataResource):
             return EurostatStore._initialize(proxies=proxies)
         elif kind_or_url == 'undata' or cls is UNdataStore:
             return UNdataStore._initialize(proxies=proxies)
+        elif kind_or_url == 'worldbank' or cls is WorldBankStore:
+            return WorldBankStore._initialize(proxies=proxies)
 
         elif cls is CKANStore:
             # skip validation if initialized with CKANStore directly
