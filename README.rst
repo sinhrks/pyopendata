@@ -85,10 +85,7 @@ Otherwise, specify the package name to be retrieved.
 
     >>> package = store.get('california-unemployment-statistics')
     >>> package
-    Resource ID: ffd05307-4528-4d15-a370-c16222119227
-    Resource Name: Comma Separated Values File
-    Resource URL: https://data.lacity.org/api/views/5zrb-xqhf/rows.csv?accessType=DOWNLOAD
-    Format: CSV, Size: None
+    california-unemployment-statistics (4 resources)
 
 A package has resources (files) which contains actual data. You use `get` method to retrieve the resource.
 
