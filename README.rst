@@ -44,7 +44,7 @@ In this example, we're going to retrieve the 'California Unemployment Statistics
 
 * https://catalog.data.gov/dataset/california-unemployment-statistics/resource/ffd05307-4528-4d15-a370-c16222119227
 
-We can read abov URL as:
+We can read above URL as:
 
   * CKAN API URL: https://catalog.data.gov/
   * Package ID: california-unemployment-statistics

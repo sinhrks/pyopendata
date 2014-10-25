@@ -31,7 +31,7 @@ Basic Usage
 
 This section explains how to retrieve data from website which uses CKAN API.You can create ``DataStore`` instance to access CKAN website by passing CKAN URL to ``DataStore`` class.
 
-In this example, we're going to retrieve the 'California Unemployment Statistics' data from `data.gov <https://www.data.gov/>_`. The target URL is:
+In this example, we're going to retrieve the 'California Unemployment Statistics' data from `data.gov <https://www.data.gov/>`_. The target URL is:
 
 * https://catalog.data.gov/dataset/california-unemployment-statistics/resource/ffd05307-4528-4d15-a370-c16222119227
 

@@ -21,7 +21,7 @@ Get `Employed doctorate holders in non managerial and non professional occupatio
 
 * http://appsso.eurostat.ec.europa.eu/nui/show.do?dataset=cdh_e_fos&lang=en
 
-We can read abov URL as:
+We can read above URL as:
 
   * Resource ID: cdh_e_fos
 

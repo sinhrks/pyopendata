@@ -21,7 +21,7 @@ Get `Trade Union Density <http://stats.oecd.org/Index.aspx?DataSetCode=UN_DEN>`_
 
 * http://stats.oecd.org/Index.aspx?DataSetCode=UN_DEN
 
-We can read abov URL as:
+We can read above URL as:
 
   * Resource ID: UN_DEN
 

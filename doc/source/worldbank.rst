@@ -21,7 +21,7 @@ Get `GDP per capita (current US$) <http://data.worldbank.org/indicator/NY.GDP.PC
 
 * http://data.worldbank.org/indicator/NY.GDP.PCAP.CD
 
-We can read abov URL as:
+We can read above URL as:
 
   * Resource ID: NY.GDP.PCAP.CD
 
