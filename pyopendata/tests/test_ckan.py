@@ -61,7 +61,10 @@ class CKANTestBase(tm.TestCase):
             self.assertTrue(isinstance(package, CKANPackage))
             self.assertTrue(package.name is not None)
 
-        package = packages[0]
+        # filter packages which has resources
+        for package in packages:
+            if len(package.resources) > 0:
+                break
 
         # Some site doesn't return resources in xml
         # In this case, CKANPackage connect to retrieve its resources
