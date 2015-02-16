@@ -64,7 +64,7 @@ class TestEurostatTestSite(tm.TestCase):
         df = resource.read()
 
         self.assertTrue(isinstance(df, pd.DataFrame))
-        self.assertEqual(df.shape, (22, 684))
+        self.assertEqual(df.shape, (23, 666))
 
         idx = pd.DatetimeIndex(['1992', '1993', '1994', '1995', '1996', '1997',
                                 '1998', '1999', '2000', '2001', '2002', '2003',
@@ -91,8 +91,7 @@ class TestEurostatTestSite(tm.TestCase):
                        index=idx)
         for expected in [ne, uk]:
             result = df[expected.name]['1992':'2013']
-            print(result.values)
-            # tm.assert_series_equal(result, expected)
+            tm.assert_series_equal(result, expected)
 
 
 if __name__ == '__main__':

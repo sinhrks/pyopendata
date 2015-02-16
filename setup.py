@@ -1,18 +1,16 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
 import codecs
 import os
 from setuptools import setup, find_packages
 
-
-
 PACKAGE = 'pyopendata'
 README = 'README.rst'
 REQUIREMENTS = 'requirements.txt'
-# required modules for test and doc build
 REQUIREMENTS_TEST = 'requirements_test.txt'
 
-VERSION = '0.0.3.dev'
+VERSION = '0.0.3'
 
 def read(fname):
   # file must be read as utf-8 in py3 to avoid to be bytes
@@ -28,7 +26,7 @@ version = '%s'
     finally:
         a.close()
 
-version_file = os.path.join(os.path.dirname(__file__), 'pyopendata', 'version.py')
+version_file = os.path.join(os.path.dirname(__file__), PACKAGE, 'version.py')
 write_version_py(filename=version_file)
 
 setup(name=PACKAGE,
@@ -39,7 +37,7 @@ setup(name=PACKAGE,
       author_email='sinhrks@gmail.com',
       url='http://pyopendata.readthedocs.org',
       license = 'BSD',
-      packages=find_packages(),
+      packages = find_packages(),
       package_data={'pyopendata.io': ['tests/data/jsdmx/*.json',
                                       'tests/data/jstat/*.json',
                                       'tests/data/sdmx/*.json']},
