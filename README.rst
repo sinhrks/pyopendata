@@ -12,6 +12,9 @@ pyopendata
 .. image:: https://travis-ci.org/sinhrks/pyopendata.svg?branch=master
     :target: https://travis-ci.org/sinhrks/pyopendata
 
+
+**IMPORTANT** The package is no longer maintained, and I'm going to merge the functionality to [pandas-datareader](https://github.com/pydata/pandas-datareader) at some point.
+
 Overview
 ~~~~~~~~
 
