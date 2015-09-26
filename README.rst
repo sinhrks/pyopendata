@@ -13,7 +13,7 @@ pyopendata
     :target: https://travis-ci.org/sinhrks/pyopendata
 
 
-**IMPORTANT** The package is no longer maintained, and I'm going to merge the functionality to [pandas-datareader](https://github.com/pydata/pandas-datareader) at some point.
+**IMPORTANT** The package is no longer maintained, and I'm going to merge the functionality to `pandas-datareader <https://github.com/pydata/pandas-datareader>`_ at some point.
 
 Overview
 ~~~~~~~~
