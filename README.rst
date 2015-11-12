@@ -23,7 +23,7 @@ and output ``pandas.DataFrame``. Which covers:
 
 * CKAN websites ( `data.gov <http://www.data.gov/>`_ , `data.go.jp <http://www.data.go.jp>`_ , etc)
 * `Eurostat <http://epp.eurostat.ec.europa.eu/>`_
-* `OECD <http://www.oecd.org/>`_
+* `OECD <http://www.oecd.org/>`_ (Moved to pandas-datareader v0.2.0)
 * `WorldBank <http://www.worldbank.org/>`_
 
 Documentation
