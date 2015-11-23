@@ -22,9 +22,9 @@ Overview
 and output ``pandas.DataFrame``. Which covers:
 
 * CKAN websites ( `data.gov <http://www.data.gov/>`_ , `data.go.jp <http://www.data.go.jp>`_ , etc)
-* `Eurostat <http://epp.eurostat.ec.europa.eu/>`_
+* `Eurostat <http://epp.eurostat.ec.europa.eu/>`_ (Moved to pandas-datareader dev, v0.2.1?)
 * `OECD <http://www.oecd.org/>`_ (Moved to pandas-datareader v0.2.0)
-* `WorldBank <http://www.worldbank.org/>`_
+* `WorldBank <http://www.worldbank.org/>`_ (Moved to pandas-datareader dev, v0.2.1?)
 
 Documentation
 ~~~~~~~~~~~~~
@@ -132,6 +132,5 @@ Or you can get raw data by specifying ``raw=True``.
     >>> raw = resource.read(raw=True)
     >>> raw[:100]
     'Year,Period,Area,Unemployment Rate,Labor Force,Employment,Unemployment,Adjusted,Preliminary\n2013,Jan'
-
 
 
